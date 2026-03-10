@@ -17,8 +17,10 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-8">
           <a href="#how" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">How It Works</a>
           <a href="#features" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Features</a>
-          <a href="#" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Sign In</a>
-          <Button variant="hero" size="sm">Contractor Sign Up</Button>
+          <Link to="/auth" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Sign In</Link>
+          <Link to="/auth">
+            <Button variant="hero" size="sm">Contractor Sign Up</Button>
+          </Link>
         </div>
 
         {/* Mobile toggle */}
