@@ -1,0 +1,47 @@
+const Footer = () => {
+  return (
+    <footer className="py-12 px-4 bg-foreground text-primary-foreground/70">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <h3 className="text-xl font-extrabold font-heading text-primary-foreground mb-3">
+              Stable<span className="text-primary">Gig</span>
+            </h3>
+            <p className="text-sm leading-relaxed">
+              Connecting homeowners with trusted contractors through video, AI, and secure payments.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold text-primary-foreground mb-3 font-heading">For Homeowners</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="hover:text-primary transition-colors">Post a Project</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Browse Contractors</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">How Escrow Works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-primary-foreground mb-3 font-heading">For Contractors</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="hover:text-primary transition-colors">Sign Up</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">AI Bidding Tools</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Same-Day Payments</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-primary-foreground mb-3 font-heading">Company</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs">
+          © {new Date().getFullYear()} StableGig. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
