@@ -66,11 +66,15 @@ const Dashboard = () => {
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: "Post a Project", desc: "Describe your home repair with a quick video.", icon: "🎬" },
-            { title: "Find Contractors", desc: "Browse verified pros in your area.", icon: "🔍" },
-            { title: "My Projects", desc: "Track your active and completed projects.", icon: "📋" },
+            { title: "Post a Project", desc: "Describe your home repair with a quick video.", icon: "🎬", link: "/post-project" },
+            { title: "Find Contractors", desc: "Browse verified pros in your area.", icon: "🔍", link: "" },
+            { title: "My Projects", desc: "Track your active and completed projects.", icon: "📋", link: "" },
           ].map((card) => (
-            <div key={card.title} className="bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow">
+            <div
+              key={card.title}
+              onClick={() => card.link && navigate(card.link)}
+              className={`bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow ${card.link ? "cursor-pointer" : ""}`}
+            >
               <span className="text-3xl mb-3 block">{card.icon}</span>
               <h3 className="font-heading font-bold text-foreground mb-1">{card.title}</h3>
               <p className="text-sm text-muted-foreground">{card.desc}</p>
