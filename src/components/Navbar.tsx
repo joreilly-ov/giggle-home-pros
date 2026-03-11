@@ -53,6 +53,7 @@ const Navbar = () => {
         <div className="md:hidden bg-foreground/90 backdrop-blur-sm rounded-lg p-4 mx-2 mb-2">
           <a href="/#how" className="block py-2 text-primary-foreground/90 font-medium">How It Works</a>
           <a href="/#features" className="block py-2 text-primary-foreground/90 font-medium">Features</a>
+          <Link to="/photo-analyzer" className="block py-2 text-primary-foreground/90 font-medium">Photo Analyzer</Link>
 
           {!loading && !user && (
             <>
