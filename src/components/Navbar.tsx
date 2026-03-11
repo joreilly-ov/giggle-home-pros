@@ -17,8 +17,8 @@ const Navbar = () => {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
-          <a href="#how" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">How It Works</a>
-          <a href="#features" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Features</a>
+          <a href="/#how" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">How It Works</a>
+          <a href="/#features" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Features</a>
 
           {!loading && !user && (
             <>
@@ -50,8 +50,8 @@ const Navbar = () => {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-foreground/90 backdrop-blur-sm rounded-lg p-4 mx-2 mb-2">
-          <a href="#how" className="block py-2 text-primary-foreground/90 font-medium">How It Works</a>
-          <a href="#features" className="block py-2 text-primary-foreground/90 font-medium">Features</a>
+          <a href="/#how" className="block py-2 text-primary-foreground/90 font-medium">How It Works</a>
+          <a href="/#features" className="block py-2 text-primary-foreground/90 font-medium">Features</a>
 
           {!loading && !user && (
             <>
