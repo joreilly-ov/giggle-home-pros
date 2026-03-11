@@ -19,6 +19,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-6">
           <a href="/#how" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">How It Works</a>
           <a href="/#features" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Features</a>
+          <Link to="/photo-analyzer" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Photo Analyzer</Link>
 
           {!loading && !user && (
             <>
