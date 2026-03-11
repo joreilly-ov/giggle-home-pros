@@ -21,7 +21,22 @@ const Auth = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
+    if (!user) return;
+    // Check if profile is complete — redirect to /profile if missing address/interests
+    supabase
+      .from("profiles")
+      .select("postcode, interests")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        const hasAddress = !!data?.postcode;
+        const hasInterests = Array.isArray((data as any)?.interests) && (data as any).interests.length > 0;
+        if (hasAddress && hasInterests) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/profile", { replace: true });
+        }
+      });
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
