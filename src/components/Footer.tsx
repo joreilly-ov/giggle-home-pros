@@ -14,9 +14,9 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-primary-foreground mb-3 font-heading">For Homeowners</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-primary transition-colors">Post a Project</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Browse Contractors</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">How Escrow Works</a></li>
+              <li><a href="/post-project" className="hover:text-primary transition-colors">Post a Project</a></li>
+              <li><a href="/browse-contractors" className="hover:text-primary transition-colors">Browse Contractors</a></li>
+              <li><a href="/how-escrow-works" className="hover:text-primary transition-colors">How Escrow Works</a></li>
             </ul>
           </div>
           <div>
