@@ -128,11 +128,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary">
-      <div className="bg-foreground">
-        <Navbar />
-        <div className="h-16" />
-      </div>
+    <div className="min-h-screen page-bg">
+      <Navbar variant="solid" />
 
       <main className="max-w-2xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-heading font-bold text-foreground mb-8">Your Profile</h1>
