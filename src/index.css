@@ -98,3 +98,18 @@
     font-family: var(--font-heading);
   }
 }
+
+/* Subtle page background for inner pages */
+.page-bg {
+  background:
+    radial-gradient(ellipse at 20% 0%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, hsl(var(--accent) / 0.04) 0%, transparent 50%),
+    hsl(var(--secondary));
+}
+
+.dark .page-bg {
+  background:
+    radial-gradient(ellipse at 20% 0%, hsl(var(--primary) / 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, hsl(var(--accent) / 0.04) 0%, transparent 50%),
+    hsl(var(--background));
+}

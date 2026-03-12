@@ -116,11 +116,8 @@ const TradePhotoAnalyzer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
-      {/* Spacer for fixed navbar */}
-      <div className="h-16" />
+    <div className="min-h-screen page-bg">
+      <Navbar variant="solid" />
 
       <header className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto flex items-center h-14 px-4 gap-4">

@@ -2,10 +2,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const About = () => (
-  <div className="min-h-screen flex flex-col bg-background">
-    <div className="bg-foreground">
-      <Navbar />
-    </div>
+  <div className="min-h-screen flex flex-col page-bg">
+    <Navbar variant="solid" />
     <main className="flex-1 max-w-3xl mx-auto px-4 py-20">
       <h1 className="text-4xl font-extrabold font-heading text-foreground mb-6">About StableGig</h1>
       <p className="text-muted-foreground mb-4">StableGig was founded with a simple mission: make it ridiculously easy for homeowners to find trustworthy contractors — and for contractors to find steady, well-paying work.</p>

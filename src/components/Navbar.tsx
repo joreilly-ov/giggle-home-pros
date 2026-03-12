@@ -4,12 +4,18 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Navbar = () => {
+interface NavbarProps {
+  variant?: "transparent" | "solid";
+}
+
+const Navbar = ({ variant = "transparent" }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
 
+  const isSolid = variant === "solid";
+
   return (
-    <nav className="absolute top-0 left-0 right-0 z-20 px-4">
+    <nav className={`${isSolid ? "bg-foreground" : "absolute top-0 left-0 right-0"} z-20 px-4`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
         <a href="/" className="text-2xl font-extrabold font-heading text-primary-foreground tracking-tight">
           Stable<span className="text-primary">Gig</span>
