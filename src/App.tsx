@@ -14,6 +14,11 @@ import TradePhotoAnalyzer from "./pages/TradePhotoAnalyzer.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import Privacy from "./pages/Privacy.tsx";
+import ContractorSignUp from "./pages/ContractorSignUp.tsx";
+import AIBiddingTools from "./pages/AIBiddingTools.tsx";
+import SameDayPayments from "./pages/SameDayPayments.tsx";
+import HowEscrowWorks from "./pages/HowEscrowWorks.tsx";
+import BrowseContractors from "./pages/BrowseContractors.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
