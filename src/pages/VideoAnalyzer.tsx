@@ -5,18 +5,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, Video, Loader2, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, Upload, Video, Loader2, AlertTriangle, CheckCircle, X, Wrench, Package } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
 
 
 type VideoAnalysisResult = {
   summary?: string;
+  likely_issue?: string;
   urgency?: string;
+  urgency_score?: number;
   trade_category?: string;
   materials?: string[];
   estimated_cost_range?: string;
   recommendations?: string[];
+  required_tools?: string[];
+  estimated_parts?: string[];
   [key: string]: unknown;
 };
 
@@ -273,7 +277,7 @@ const VideoAnalyzer = () => {
           /* Results */
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-success" />
+              <CheckCircle className="w-8 h-8 text-primary" />
               <div>
                 <h2 className="text-2xl font-heading font-bold text-foreground">Analysis Complete</h2>
                 <p className="text-muted-foreground">Here's what our AI found</p>
@@ -281,22 +285,39 @@ const VideoAnalyzer = () => {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {result.summary && (
+              {(result.likely_issue || result.summary) && (
                 <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Summary</h3>
-                  <p className="text-foreground">{result.summary}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Likely Issue</h3>
+                  <p className="text-foreground text-lg font-semibold">{result.likely_issue || result.summary}</p>
                 </div>
               )}
 
-              {result.urgency && (
+              {result.urgency_score != null && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Urgency</h3>
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                      result.urgency_score >= 8
+                        ? "bg-destructive/10 text-destructive"
+                        : result.urgency_score >= 5
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                        : "bg-primary/10 text-primary"
+                    }`}>
+                      {result.urgency_score >= 8 ? "High" : result.urgency_score >= 5 ? "Medium" : "Low"} ({result.urgency_score}/10)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!result.urgency_score && result.urgency && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Urgency</h3>
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                     result.urgency.toLowerCase().includes("high")
                       ? "bg-destructive/10 text-destructive"
                       : result.urgency.toLowerCase().includes("medium")
-                      ? "bg-accent/10 text-accent"
-                      : "bg-success/10 text-success"
+                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                      : "bg-primary/10 text-primary"
                   }`}>
                     {result.urgency}
                   </span>
@@ -317,13 +338,39 @@ const VideoAnalyzer = () => {
                 </div>
               )}
 
+              {result.required_tools && result.required_tools.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Required Tools</h3>
+                  <ul className="space-y-1">
+                    {result.required_tools.map((tool, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <Wrench className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" /> {tool}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {result.estimated_parts && result.estimated_parts.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Estimated Parts</h3>
+                  <ul className="space-y-1">
+                    {result.estimated_parts.map((part, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" /> {part}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {result.materials && result.materials.length > 0 && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Materials Needed</h3>
                   <ul className="space-y-1">
                     {result.materials.map((m, i) => (
                       <li key={i} className="text-foreground text-sm flex items-start gap-2">
-                        <span className="text-primary mt-0.5">•</span> {m}
+                        <Package className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" /> {m}
                       </li>
                     ))}
                   </ul>
@@ -336,7 +383,7 @@ const VideoAnalyzer = () => {
                   <ul className="space-y-2">
                     {result.recommendations.map((r, i) => (
                       <li key={i} className="text-foreground text-sm flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" /> {r}
+                        <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" /> {r}
                       </li>
                     ))}
                   </ul>
