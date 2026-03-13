@@ -130,6 +130,39 @@ export type Database = {
           },
         ]
       }
+      usage_log: {
+        Row: {
+          analysis_type: string
+          completion_tokens: number
+          created_at: string
+          id: string
+          model: string
+          prompt_tokens: number
+          total_tokens: number
+          user_id: string | null
+        }
+        Insert: {
+          analysis_type: string
+          completion_tokens?: number
+          created_at?: string
+          id?: string
+          model: string
+          prompt_tokens?: number
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Update: {
+          analysis_type?: string
+          completion_tokens?: number
+          created_at?: string
+          id?: string
+          model?: string
+          prompt_tokens?: number
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_metadata: {
         Row: {
           bio: string | null

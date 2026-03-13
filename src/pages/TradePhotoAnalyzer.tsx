@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import PhotoGrid from "@/components/photo-analyzer/PhotoGrid";
 import AnalysisResults from "@/components/photo-analyzer/AnalysisResults";
 import { PhotoFile, AnalysisResult, TRADE_CATEGORIES, MAX_PHOTOS, MAX_FILE_SIZE, ACCEPTED_TYPES } from "@/components/photo-analyzer/types";
-import { supabase } from "@/integrations/supabase/client";
+
 
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -95,11 +95,14 @@ const TradePhotoAnalyzer = () => {
       };
       if (tradeCategory) payload.trade_category = tradeCategory;
 
-      const { data, error: fnError } = await supabase.functions.invoke("analyse-photos", {
-        body: payload,
+      const response = await fetch("https://stable-gig-7xgcwnxkrq-ew.a.run.app/analyse/photos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (fnError) throw new Error(fnError.message);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || `Server error ${response.status}`);
       if (data?.error) throw new Error(data.error);
 
       setResult(data as AnalysisResult);
