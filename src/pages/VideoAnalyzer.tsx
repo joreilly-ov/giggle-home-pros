@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, Video, Loader2, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, Upload, Video, Loader2, AlertTriangle, CheckCircle, X, Wrench, Package } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
 
