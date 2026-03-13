@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Upload, Video, Loader2, AlertTriangle, CheckCircle, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
-import { supabase } from "@/integrations/supabase/client";
+
 
 type VideoAnalysisResult = {
   summary?: string;
@@ -111,19 +111,18 @@ const VideoAnalyzer = () => {
 
       setProgress(30);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const response = await supabase.functions.invoke("analyse-video", {
+      const response = await fetch("https://stable-gig-374485351183.europe-west1.run.app/analyse", {
+        method: "POST",
         body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       setProgress(90);
 
-      if (response.error) throw new Error(response.error.message || "Analysis failed");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || `Server error ${response.status}`);
+      if (data?.error) throw new Error(data.error);
 
-      setResult(response.data as VideoAnalysisResult);
+      setResult(data as VideoAnalysisResult);
       setProgress(100);
       toast({ title: "Analysis complete!", description: "Your video has been processed." });
     } catch (err) {
