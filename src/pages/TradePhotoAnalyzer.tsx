@@ -1,29 +1,23 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, X, Camera, Loader2, CheckCircle, AlertTriangle, ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, Camera, Loader2, AlertTriangle, ImageIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import PhotoGrid from "@/components/photo-analyzer/PhotoGrid";
+import AnalysisResults from "@/components/photo-analyzer/AnalysisResults";
+import { PhotoFile, AnalysisResult, TRADE_CATEGORIES, MAX_PHOTOS, MAX_FILE_SIZE, ACCEPTED_TYPES } from "@/components/photo-analyzer/types";
+import { supabase } from "@/integrations/supabase/client";
 
-const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per photo
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-
-type PhotoFile = {
-  file: File;
-  preview: string;
-  id: string;
-};
-
-type AnalysisResult = {
-  summary?: string;
-  urgency?: string;
-  trade_category?: string;
-  estimated_cost_range?: string;
-  recommendations?: string[];
-  issues_detected?: string[];
-  [key: string]: unknown;
-};
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const TradePhotoAnalyzer = () => {
   const navigate = useNavigate();
@@ -31,6 +25,8 @@ const TradePhotoAnalyzer = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
+  const [description, setDescription] = useState("");
+  const [tradeCategory, setTradeCategory] = useState("");
   const [analysing, setAnalysing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +38,6 @@ const TradePhotoAnalyzer = () => {
       toast({ title: "Limit reached", description: `Maximum ${MAX_PHOTOS} photos allowed.`, variant: "destructive" });
       return;
     }
-
     const valid: PhotoFile[] = [];
     for (const f of incoming.slice(0, remaining)) {
       if (!ACCEPTED_TYPES.includes(f.type)) {
@@ -74,6 +69,8 @@ const TradePhotoAnalyzer = () => {
   const clearAll = () => {
     photos.forEach((p) => URL.revokeObjectURL(p.preview));
     setPhotos([]);
+    setDescription("");
+    setTradeCategory("");
     setResult(null);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -81,30 +78,31 @@ const TradePhotoAnalyzer = () => {
 
   const analysePhotos = async () => {
     if (photos.length === 0) return;
+    if (description.trim().length < 10) {
+      toast({ title: "Description too short", description: "Please describe the problem in at least 10 characters.", variant: "destructive" });
+      return;
+    }
+
     setAnalysing(true);
     setError(null);
 
     try {
-      // Placeholder — backend not done yet
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      const images = await Promise.all(photos.map((p) => fileToBase64(p.file)));
 
-      setResult({
-        summary: "This is a placeholder analysis. The backend endpoint for photo analysis is not yet connected.",
-        urgency: "Medium",
-        trade_category: "General Maintenance",
-        estimated_cost_range: "$150 – $400",
-        issues_detected: [
-          "Visible wear on surface material",
-          "Potential moisture damage detected",
-          "Minor structural concern noted",
-        ],
-        recommendations: [
-          "Schedule a professional inspection within 2 weeks",
-          "Document any changes with follow-up photos",
-          "Avoid DIY repairs until assessed by a licensed tradesperson",
-        ],
+      const payload: Record<string, unknown> = {
+        images,
+        description: description.trim(),
+      };
+      if (tradeCategory) payload.trade_category = tradeCategory;
+
+      const { data, error: fnError } = await supabase.functions.invoke("analyse-photos", {
+        body: payload,
       });
 
+      if (fnError) throw new Error(fnError.message);
+      if (data?.error) throw new Error(data.error);
+
+      setResult(data as AnalysisResult);
       toast({ title: "Analysis complete!", description: `${photos.length} photo(s) processed.` });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -114,6 +112,8 @@ const TradePhotoAnalyzer = () => {
       setAnalysing(false);
     }
   };
+
+  const descriptionValid = description.trim().length >= 10;
 
   return (
     <div className="min-h-screen page-bg">
@@ -134,58 +134,21 @@ const TradePhotoAnalyzer = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {!result ? (
           <div className="space-y-6">
-            {/* Intro */}
             <div>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-2">
                 Snap it. Upload it. Know what's wrong.
               </h2>
               <p className="text-muted-foreground">
-                Upload up to {MAX_PHOTOS} photos of the problem area. Our AI will quickly check if the issue is clear and provide a preliminary diagnosis — faster and cheaper than video analysis.
+                Upload up to {MAX_PHOTOS} photos of the problem area. Our AI will quickly check if the issue is clear and provide a preliminary diagnosis.
               </p>
             </div>
 
             {/* Drop zone / grid */}
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              className="space-y-4"
-            >
-              {/* Photo grid */}
+            <div onDragOver={(e) => e.preventDefault()} onDrop={handleDrop} className="space-y-4">
               {photos.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {photos.map((p) => (
-                    <div key={p.id} className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-secondary">
-                      <img
-                        src={p.preview}
-                        alt="Upload preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => removePhoto(p.id)}
-                        className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3.5 h-3.5 text-foreground" />
-                      </button>
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-foreground/60 to-transparent p-2">
-                        <p className="text-xs text-primary-foreground truncate">{p.file.name}</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Add more slot */}
-                  {photos.length < MAX_PHOTOS && (
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
-                    >
-                      <Camera className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Add more</span>
-                    </button>
-                  )}
-                </div>
+                <PhotoGrid photos={photos} onRemove={removePhoto} onAddMore={() => fileInputRef.current?.click()} />
               )}
 
-              {/* Empty state drop zone */}
               {photos.length === 0 && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -194,9 +157,7 @@ const TradePhotoAnalyzer = () => {
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                     <ImageIcon className="w-8 h-8 text-primary" />
                   </div>
-                  <p className="text-foreground font-medium mb-1">
-                    Drag & drop your photos here
-                  </p>
+                  <p className="text-foreground font-medium mb-1">Drag & drop your photos here</p>
                   <p className="text-sm text-muted-foreground">
                     or click to browse · JPG, PNG, WebP · Max 10MB each · Up to {MAX_PHOTOS} photos
                   </p>
@@ -213,6 +174,42 @@ const TradePhotoAnalyzer = () => {
               />
             </div>
 
+            {/* Description */}
+            {photos.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Describe the problem *</label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g. Water is leaking from under the kitchen sink, seems to come from the pipe joint..."
+                  maxLength={1000}
+                  className="min-h-[100px]"
+                />
+                <p className={`text-xs ${descriptionValid ? "text-muted-foreground" : "text-destructive"}`}>
+                  {description.trim().length}/1000 characters (min 10)
+                </p>
+              </div>
+            )}
+
+            {/* Trade category */}
+            {photos.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Trade category</label>
+                <Select value={tradeCategory} onValueChange={setTradeCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Auto-detect (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRADE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value || "_auto"}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Status bar */}
             {photos.length > 0 && (
               <div className="flex items-center justify-between bg-card border border-border rounded-lg p-4">
@@ -228,7 +225,6 @@ const TradePhotoAnalyzer = () => {
               </div>
             )}
 
-            {/* Error */}
             {error && (
               <div className="flex items-start gap-3 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                 <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -239,11 +235,10 @@ const TradePhotoAnalyzer = () => {
               </div>
             )}
 
-            {/* Analyse button */}
             {photos.length > 0 && (
               <Button
                 onClick={analysePhotos}
-                disabled={analysing}
+                disabled={analysing || !descriptionValid}
                 className="w-full gap-2"
                 size="lg"
               >
@@ -260,89 +255,7 @@ const TradePhotoAnalyzer = () => {
             )}
           </div>
         ) : (
-          /* Results */
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-success" />
-              <div>
-                <h2 className="text-2xl font-heading font-bold text-foreground">Analysis Complete</h2>
-                <p className="text-muted-foreground">{photos.length} photo{photos.length > 1 ? "s" : ""} analysed</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {result.summary && (
-                <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Summary</h3>
-                  <p className="text-foreground">{result.summary}</p>
-                </div>
-              )}
-
-              {result.urgency && (
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Urgency</h3>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    result.urgency.toLowerCase().includes("high")
-                      ? "bg-destructive/10 text-destructive"
-                      : result.urgency.toLowerCase().includes("medium")
-                      ? "bg-accent/10 text-accent"
-                      : "bg-success/10 text-success"
-                  }`}>
-                    {result.urgency}
-                  </span>
-                </div>
-              )}
-
-              {result.trade_category && (
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Trade Category</h3>
-                  <p className="text-foreground font-semibold">{result.trade_category}</p>
-                </div>
-              )}
-
-              {result.estimated_cost_range && (
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Estimated Cost</h3>
-                  <p className="text-foreground font-semibold">{result.estimated_cost_range}</p>
-                </div>
-              )}
-
-              {result.issues_detected && result.issues_detected.length > 0 && (
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Issues Detected</h3>
-                  <ul className="space-y-1">
-                    {result.issues_detected.map((issue, i) => (
-                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
-                        <AlertTriangle className="w-3.5 h-3.5 text-accent flex-shrink-0 mt-0.5" /> {issue}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {result.recommendations && result.recommendations.length > 0 && (
-                <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Recommendations</h3>
-                  <ul className="space-y-2">
-                    {result.recommendations.map((r, i) => (
-                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" /> {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={clearAll} className="gap-2">
-                <Camera className="w-4 h-4" /> Analyse More Photos
-              </Button>
-              <Button onClick={() => navigate("/dashboard")}>
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
+          <AnalysisResults result={result} photos={photos} onClear={clearAll} />
         )}
       </main>
     </div>
