@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Profile from "./pages/Profile.tsx";
 import PostProject from "./pages/PostProject.tsx";
 import TradePhotoAnalyzer from "./pages/TradePhotoAnalyzer.tsx";
+import VideoAnalyzer from "./pages/VideoAnalyzer.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import Privacy from "./pages/Privacy.tsx";
