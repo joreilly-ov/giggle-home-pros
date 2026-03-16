@@ -129,6 +129,7 @@ const Profile = () => {
       toast({ title: "Error saving", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profile saved", description: "Your changes have been saved." });
+      navigate("/dashboard");
     }
   };
 

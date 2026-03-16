@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,6 +35,7 @@ interface ContractorData {
 export function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingVerification, setSavingVerification] = useState(false);
@@ -126,6 +128,7 @@ export function ProfileSettings() {
       toast({ title: "Error saving", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profile saved", description: "Your business details have been updated." });
+      navigate("/contractor/profile");
     }
   };
 
@@ -143,6 +146,7 @@ export function ProfileSettings() {
       toast({ title: "Error saving", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Verification saved", description: "Your credentials have been updated." });
+      navigate("/contractor/profile");
     }
   };
 
