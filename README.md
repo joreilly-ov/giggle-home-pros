@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
+# Giggle Home Pros
 
-## Project info
+A marketplace connecting homeowners with trusted contractors for home repair and improvement projects.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Live app:** https://giggle-home-pros.lovable.app
 
-## How can I edit this code?
+## What it does
 
-There are several ways of editing your application.
+- Homeowners post projects and browse vetted contractors
+- Contractors sign up, build a profile, and bid on jobs
+- AI-powered photo and video analysis to help diagnose home repair needs
+- Escrow-based payments with same-day payout for contractors
 
-**Use Lovable**
+## User roles
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+**Customers** (`/profile`, `/dashboard`)
+- Create an account, set location and trade interests
+- Post projects and browse contractors
 
-Changes made via Lovable will be committed automatically to this repo.
+**Contractors** (`/contractor/profile/*`)
+- Onboard via `/contractor/signup` (business info + expertise)
+- Manage active bids, profile settings, and license/insurance verification
 
-**Use your preferred IDE**
+## Tech stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend:** React 18, TypeScript, Vite
+- **UI:** shadcn/ui, Tailwind CSS, Radix UI
+- **Backend:** Supabase (Postgres + Auth + Edge Functions)
+- **Routing:** React Router v6
+- **State:** TanStack Query
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone <repo-url>
+cd giggle-home-pros
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Requires Node.js 18+. The app connects to a hosted Supabase instance — no local Supabase setup needed for frontend work.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Key scripts
 
-**Use GitHub Codespaces**
+```sh
+npm run dev        # Start dev server
+npm run build      # Production build
+npm run lint       # ESLint
+npm run test       # Vitest unit tests
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project structure
 
-## What technologies are used for this project?
+```
+src/
+  pages/           # Route-level components
+  components/      # Shared + feature components
+    contractor/    # Contractor-specific UI (ActiveBids, ProfileSettings, Verification)
+    ui/            # shadcn/ui primitives
+  contexts/        # AuthContext (Supabase session)
+  integrations/    # Supabase client + generated types
+supabase/
+  migrations/      # Database schema migrations
+```
 
-This project is built with:
+## Database tables
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Table | Purpose |
+|-------|---------|
+| `profiles` | Customer profiles (name, address, interests) |
+| `contractors` | Contractor profiles (business name, expertise, license) |
+| `user_metadata` | Shared user metadata (username, bio) |
+| `trades` | Trade/business registry |
+| `videos` | Video analysis records |
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Deployed via [Lovable](https://lovable.dev). Push to `main` and Lovable auto-deploys.
