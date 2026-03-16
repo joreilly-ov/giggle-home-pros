@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Loader2 } from "lucide-react";
@@ -88,6 +89,14 @@ const Hero = () => {
             <span>{location}</span>
           </div>
         )}
+
+        <div className="mt-6">
+          <Link to="/contractor/signup">
+            <Button variant="hero-outline" size="lg" className="h-12 px-8">
+              Join as a Contractor
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );
