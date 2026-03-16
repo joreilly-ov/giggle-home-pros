@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,8 @@ import {
   Hammer,
   Thermometer,
   HardHat,
+  MapPin,
+  Loader2,
 } from "lucide-react";
 
 const EXPERTISE_OPTIONS = [
@@ -40,13 +42,37 @@ const ContractorOnboarding = () => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 fields
   const [businessName, setBusinessName] = useState("");
   const [postcode, setPostcode] = useState("");
+  const [zipLocation, setZipLocation] = useState("");
+  const [zipLoading, setZipLoading] = useState(false);
   const [phone, setPhone] = useState("");
 
-  // Step 2 fields
   const [expertise, setExpertise] = useState<string[]>([]);
+
+  const lookupZip = useCallback(async (code: string) => {
+    if (!/^\d{5}$/.test(code)) return;
+    setZipLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("zip-lookup", { body: { zip: code } });
+      if (!error && data?.city) {
+        setZipLocation(`${data.city}, ${data.state}`);
+      } else {
+        setZipLocation("");
+      }
+    } catch {
+      setZipLocation("");
+    } finally {
+      setZipLoading(false);
+    }
+  }, []);
+
+  const handleZipChange = (val: string) => {
+    const cleaned = val.replace(/\D/g, "").slice(0, 5);
+    setPostcode(cleaned);
+    setZipLocation("");
+    if (cleaned.length === 5) lookupZip(cleaned);
+  };
 
   const toggleExpertise = (label: string) => {
     setExpertise((prev) =>
@@ -86,7 +112,6 @@ const ContractorOnboarding = () => {
   return (
     <div className="min-h-screen bg-secondary flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl">
-        {/* Header */}
         <div className="text-center mb-8">
           <a href="/" className="text-3xl font-extrabold font-heading text-foreground tracking-tight">
             Stable<span className="text-primary">Gig</span>
@@ -99,7 +124,6 @@ const ContractorOnboarding = () => {
           </div>
         </div>
 
-        {/* Progress */}
         <div className="mb-6">
           <div className="flex justify-between text-xs font-medium text-muted-foreground mb-2">
             <span className={step >= 1 ? "text-primary" : ""}>1 · Business Info</span>
@@ -135,13 +159,25 @@ const ContractorOnboarding = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="postcode">ZIP / Postcode</Label>
-                      <Input
-                        id="postcode"
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
-                        placeholder="90210"
-                        className="mt-1.5"
-                      />
+                      <div className="relative mt-1.5">
+                        <Input
+                          id="postcode"
+                          value={postcode}
+                          onChange={(e) => handleZipChange(e.target.value)}
+                          placeholder="90210"
+                          inputMode="numeric"
+                          maxLength={5}
+                        />
+                        {zipLoading && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                      {zipLocation && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3 text-primary" />
+                          <span>{zipLocation}</span>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
