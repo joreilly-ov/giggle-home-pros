@@ -17,6 +17,7 @@ import Contact from "./pages/Contact.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import ContractorSignUp from "./pages/ContractorSignUp.tsx";
 import ContractorOnboarding from "./pages/ContractorOnboarding.tsx";
+import ContractorProfile from "./pages/ContractorProfile.tsx";
 import AIBiddingTools from "./pages/AIBiddingTools.tsx";
 import SameDayPayments from "./pages/SameDayPayments.tsx";
 import HowEscrowWorks from "./pages/HowEscrowWorks.tsx";
