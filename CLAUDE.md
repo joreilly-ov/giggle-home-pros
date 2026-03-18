@@ -43,9 +43,41 @@ npm run lint    # ESLint
 
 Migrations live in `supabase/migrations/`. When changing the schema, add a new `.sql` file — do not edit existing migrations.
 
+## Review system
+
+`src/components/ReviewMediator.tsx` — self-contained React/TSX component.
+
+**Props:**
+
+| Prop | Type | Notes |
+|------|------|-------|
+| `contractorId` | `string` | UUID of the contractor being reviewed |
+| `jobId` | `string?` | UUID of the completed job (sent in the insert) |
+| `escrowStatus` | `string?` | Form only unlocks when value is `'released'` or `'funds_released'` |
+| `mode` | `'form' \| 'list' \| 'both'` | Default: `'both'` |
+| `onSuccess` | `(r) => void` | Called with the inserted row on success |
+
+**Database writes to:** `reviews` table (Supabase insert via client)
+**Database reads from:** `visible_reviews` view (excludes `private_feedback`)
+
+**Private feedback:** sent in the insert payload, never returned by `visible_reviews`.
+Admins read it directly from `reviews` via service role.
+
+**Overall score:** computed live as `ROUND((quality + communication + cleanliness) / 3, 2)` — matches the `GENERATED` column in the DB.
+
+**Escrow gate:** three layers — `disabled` prop on `<Button>`, `aria-disabled`, and `title` tooltip. The form shows a `<LockedOverlay>` when escrow is not released.
+
+**Schema migration:** `supabase/migrations/20260318000000_007_quality_rating_private_feedback.sql`
+- `rating_accuracy` → `rating_quality`; adds `rating_cleanliness`
+- Rebuilds `GENERATED overall` column
+- Adds `private_feedback TEXT`
+- Creates `visible_reviews` view with `SELECT` granted to `authenticated`
+
 ## Things to watch out for
 
 - The `profiles` table uses `id` as the FK to `auth.users` (not `user_id`)
 - The `contractors` table uses `user_id` as the FK to `auth.users`
 - RLS is enabled on `contractors` — users can only read/write their own row
 - Don't redirect to `/profile` for contractors — send them to `/contractor/profile`
+- `reviews` contains `private_feedback` — never expose this to the tradesman; always query `visible_reviews` on the client
+- The `overall` column in `reviews` is `GENERATED ALWAYS` — do not include it in INSERT payloads
