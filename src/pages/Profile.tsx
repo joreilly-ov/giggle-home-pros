@@ -36,9 +36,22 @@ const Profile = () => {
   const [zipLooking, setZipLooking] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       navigate("/auth", { replace: true });
+      return;
     }
+    // Contractors should use their own profile settings page
+    supabase
+      .from("contractors")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data: contractorRow }) => {
+        if (contractorRow) {
+          navigate("/contractor/profile/settings", { replace: true });
+        }
+      });
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
