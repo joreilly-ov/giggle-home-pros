@@ -12,6 +12,22 @@ interface NavbarProps {
 const Navbar = ({ variant = "transparent" }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setDisplayName(null); return; }
+    supabase.from("contractors" as any).select("business_name").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data && (data as any).business_name) {
+          setDisplayName((data as any).business_name);
+        } else {
+          supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
+            .then(({ data: p }) => {
+              setDisplayName(p?.full_name || user.email?.split("@")[0] || "User");
+            });
+        }
+      });
+  }, [user]);
 
   const isSolid = variant === "solid";
 
