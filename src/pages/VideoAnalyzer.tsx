@@ -392,6 +392,14 @@ const VideoAnalyzer = () => {
               )}
             </div>
 
+            <TaskBreakdown
+              description={result.likely_issue || result.summary || ""}
+              problemType={result.trade_category}
+              urgency={result.urgency || (result.urgency_score != null ? String(result.urgency_score) : undefined)}
+              materialsInvolved={result.materials}
+              requiredTools={result.required_tools}
+            />
+
             <div className="flex gap-3">
               <Button variant="outline" onClick={clearFile} className="gap-2">
                 <Upload className="w-4 h-4" /> Upload Another

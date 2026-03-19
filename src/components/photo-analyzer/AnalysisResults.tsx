@@ -88,6 +88,12 @@ const AnalysisResults = ({ result, photos, onClear }: Props) => {
         )}
       </div>
 
+      <TaskBreakdown
+        description={result.likely_issue || ""}
+        urgency={result.urgency_score != null ? String(result.urgency_score) : undefined}
+        requiredTools={result.required_tools}
+      />
+
       <div className="flex gap-3">
         <Button variant="outline" onClick={onClear} className="gap-2">
           <Camera className="w-4 h-4" /> Analyse More Photos
