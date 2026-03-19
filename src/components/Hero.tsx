@@ -38,9 +38,12 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroBg})` }}
+      <img
+        src={heroBg}
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-foreground/50" />
 
