@@ -62,6 +62,12 @@ export function MyProjects() {
   const [videos, setVideos] = useState<VideoProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{
+    jobId: string;
+    contractorId: string;
+    title: string;
+    escrowStatus: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -176,7 +182,8 @@ export function MyProjects() {
           ) : (
             <div className="divide-y divide-border">
               {videos.map((v) => {
-                const status = v.analysis_result ? "active" : "pending";
+                const hasAnalysis = !!v.analysis_result;
+                const status = hasAnalysis ? "active" : "pending";
                 const cfg = STATUS_CONFIG[status];
                 return (
                   <div
@@ -214,6 +221,26 @@ export function MyProjects() {
           )}
         </CardContent>
       </Card>
+
+      {/* Review sheet — ready for when real completed jobs with contractor assignments exist */}
+      <Sheet open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="font-heading">
+              Rate: {reviewTarget?.title}
+            </SheetTitle>
+          </SheetHeader>
+          {reviewTarget && (
+            <ReviewMediator
+              contractorId={reviewTarget.contractorId}
+              jobId={reviewTarget.jobId}
+              escrowStatus={reviewTarget.escrowStatus}
+              mode="form"
+              onSuccess={() => setReviewTarget(null)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

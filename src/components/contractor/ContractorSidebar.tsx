@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Gavel, Settings, Building2, LogOut, ChevronRight, Loader2, AlertTriangle, Flame, Shield } from "lucide-react";
+import { Gavel, Settings, Building2, LogOut, ChevronRight, Loader2, AlertTriangle, Flame, Shield, Star } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,7 @@ import {
 const menuItems = [
   { title: "Job Feed", url: "/contractor/profile", icon: Flame },
   { title: "Active Bids", url: "/contractor/profile/bids", icon: Gavel },
+  { title: "My Reviews", url: "/contractor/profile/reviews", icon: Star },
   { title: "Profile Settings", url: "/contractor/profile/settings", icon: Settings },
   { title: "Verification", url: "/contractor/profile/verification", icon: Shield },
 ];

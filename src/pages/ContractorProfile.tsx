@@ -4,12 +4,17 @@ import { ContractorSidebar } from "@/components/contractor/ContractorSidebar";
 import { ActiveBids } from "@/components/contractor/ActiveBids";
 import { ProfileSettings } from "@/components/contractor/ProfileSettings";
 import { Verification } from "@/components/contractor/Verification";
+import { ReviewMediator } from "@/components/ReviewMediator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Flame } from "lucide-react";
+import { Flame, Loader2 } from "lucide-react";
 
 const PAGE_META: Record<string, { title: string; description: string }> = {
   "": { title: "Job Feed", description: "Browse available jobs matching your expertise." },
   bids: { title: "Active Bids", description: "Track and manage your submitted bids." },
+  reviews: { title: "My Reviews", description: "See what customers are saying about your work." },
   settings: { title: "Profile Settings", description: "Update your business details." },
   verification: { title: "Verification", description: "Manage your license and insurance credentials." },
 };
@@ -34,7 +39,6 @@ function useSegment() {
   return parts[parts.length - 1] === "profile" ? "" : parts[parts.length - 1];
 }
 
-// Placeholder for the upcoming Tinder-for-Trades feed
 function JobFeedPlaceholder() {
   return (
     <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -49,6 +53,39 @@ function JobFeedPlaceholder() {
       </div>
     </div>
   );
+}
+
+function ContractorReviews() {
+  const { user } = useAuth();
+  const [contractorId, setContractorId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("contractors" as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setContractorId((data as any).id);
+        setLoading(false);
+      });
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-muted-foreground text-sm gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" /> Loading reviews…
+      </div>
+    );
+  }
+
+  if (!contractorId) {
+    return <p className="text-center text-muted-foreground py-12 text-sm">No contractor profile found.</p>;
+  }
+
+  return <ReviewMediator contractorId={contractorId} mode="list" />;
 }
 
 const ContractorProfile = () => {
@@ -76,6 +113,14 @@ const ContractorProfile = () => {
                 element={
                   <main className="flex-1 p-6 md:p-8 max-w-5xl w-full">
                     <ActiveBids />
+                  </main>
+                }
+              />
+              <Route
+                path="reviews"
+                element={
+                  <main className="flex-1 p-6 md:p-8 max-w-3xl w-full">
+                    <ContractorReviews />
                   </main>
                 }
               />
