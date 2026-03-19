@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, PlusCircle, Search, LogOut, User, ChevronRight } from "lucide-react";
+import { Building2, User, ChevronRight, LogOut, Loader2, AlertTriangle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ClipboardList, PlusCircle, Search } from "lucide-react";
 
 const menuItems = [
   { title: "My Projects", url: "/dashboard", icon: ClipboardList },
@@ -30,6 +31,8 @@ export function CustomerSidebar() {
   const currentPath = location.pathname;
   const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -38,37 +41,67 @@ export function CustomerSidebar() {
       .select("full_name")
       .eq("id", user.id)
       .single()
-      .then(({ data }) => {
-        if (data) setFullName(data.full_name);
+      .then(({ data, error: fetchError }) => {
+        if (fetchError) {
+          setError(true);
+        } else if (data) {
+          setFullName(data.full_name);
+        }
+        setLoading(false);
       });
   }, [user]);
 
   const isActive = (path: string) => currentPath === path;
+
+  const renderBrand = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-2">
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <AlertTriangle className="w-4 h-4 text-destructive" />
+          {!collapsed && <span className="text-xs">Failed to load</span>}
+        </div>
+      );
+    }
+
+    if (!collapsed) {
+      return (
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <User className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold font-heading text-foreground leading-tight truncate">
+              {fullName ?? "Homeowner"}
+            </p>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary/10 text-primary mt-0.5">
+              Customer
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center mx-auto">
+        <User className="w-5 h-5 text-primary-foreground" />
+      </div>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent className="bg-card pt-4">
         {/* Brand */}
         <div className="px-4 pb-4 border-b border-border mb-2">
-          {!collapsed ? (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold font-heading text-foreground leading-tight truncate">
-                  {fullName ?? "Homeowner"}
-                </p>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mt-0.5">
-                  Customer
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center mx-auto">
-              <User className="w-5 h-5 text-white" />
-            </div>
-          )}
+          {renderBrand()}
         </div>
 
         <SidebarGroup>

@@ -17,6 +17,8 @@ import {
   Circle,
   PlusCircle,
   ArrowUpRight,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,47 +34,23 @@ interface VideoProject {
   analysis_result: Record<string, unknown> | null;
 }
 
-// Mock completed jobs with real contractor linkage (pending real jobs table)
-const MOCK_COMPLETED = [
-  {
-    id: "mock-1",
-    title: "Bathroom Plumbing Fix",
-    contractor: "BlueStar Plumbing",
-    contractor_id: "00000000-0000-0000-0000-000000000001",
-    completed_at: "2026-02-14",
-    amount: "$640",
-    escrow_status: "funds_released" as const,
-    reviewed: false,
-  },
-  {
-    id: "mock-2",
-    title: "Roof Inspection & Repair",
-    contractor: "PeakRoof Pros",
-    contractor_id: "00000000-0000-0000-0000-000000000002",
-    completed_at: "2026-01-28",
-    amount: "$1,200",
-    escrow_status: "funds_released" as const,
-    reviewed: true,
-  },
-];
-
 // ─── Status helpers ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
   active: {
     label: "In Progress",
-    classes: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800",
-    dot: "bg-blue-500",
+    classes: "bg-primary/10 text-primary border-primary/20",
+    dot: "bg-primary",
   },
   pending: {
     label: "Awaiting Bids",
-    classes: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800",
-    dot: "bg-amber-400",
+    classes: "bg-accent/50 text-accent-foreground border-accent/30",
+    dot: "bg-accent-foreground/60",
   },
   completed: {
     label: "Completed",
-    classes: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
-    dot: "bg-green-500",
+    classes: "bg-primary/10 text-primary border-primary/20",
+    dot: "bg-primary",
   },
 } as const;
 
@@ -83,12 +61,7 @@ export function MyProjects() {
   const navigate = useNavigate();
   const [videos, setVideos] = useState<VideoProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [reviewTarget, setReviewTarget] = useState<{
-    jobId: string;
-    contractorId: string;
-    title: string;
-    escrowStatus: string;
-  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -97,8 +70,12 @@ export function MyProjects() {
       .select("id, filename, created_at, analysis_result")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setVideos((data as VideoProject[]) ?? []);
+      .then(({ data, error: fetchError }) => {
+        if (fetchError) {
+          setError(fetchError.message);
+        } else {
+          setVideos((data as VideoProject[]) ?? []);
+        }
         setLoading(false);
       });
   }, [user]);
@@ -106,9 +83,8 @@ export function MyProjects() {
   const activeVideos = videos.filter((v) => !v.analysis_result);
   const analyzedVideos = videos.filter((v) => v.analysis_result);
 
-  const totalProjects = videos.length + MOCK_COMPLETED.length;
-  const completedCount = MOCK_COMPLETED.length + analyzedVideos.length;
-  const awaitingReview = MOCK_COMPLETED.filter((j) => !j.reviewed).length;
+  const totalProjects = videos.length;
+  const completedCount = analyzedVideos.length;
 
   function projectTitle(v: VideoProject): string {
     const name = v.filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
@@ -118,7 +94,7 @@ export function MyProjects() {
   return (
     <div className="space-y-6">
       {/* KPI row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
           {
             label: "Total Projects",
@@ -133,16 +109,8 @@ export function MyProjects() {
             value: String(completedCount),
             sub: `${activeVideos.length} still active`,
             icon: CheckCircle2,
-            accent: "text-green-600",
-            bg: "bg-green-100 dark:bg-green-900/20",
-          },
-          {
-            label: "Awaiting Review",
-            value: String(awaitingReview),
-            sub: "share your feedback",
-            icon: Star,
-            accent: "text-amber-600",
-            bg: "bg-amber-100 dark:bg-amber-900/20",
+            accent: "text-primary",
+            bg: "bg-primary/10",
           },
         ].map((stat) => (
           <Card key={stat.label} className="border-border shadow-sm">
@@ -164,85 +132,6 @@ export function MyProjects() {
         ))}
       </div>
 
-      {/* Completed jobs (with review integration) */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-heading flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-600" /> Completed Jobs
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {MOCK_COMPLETED.length === 0 ? (
-            <p className="text-center text-muted-foreground py-12 text-sm">
-              No completed jobs yet.
-            </p>
-          ) : (
-            <div className="divide-y divide-border">
-              {MOCK_COMPLETED.map((job) => {
-                const cfg = STATUS_CONFIG.completed;
-                return (
-                  <div
-                    key={job.id}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-secondary/40 transition-colors"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{job.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="text-xs text-muted-foreground">{job.contractor}</span>
-                          <span className="text-muted-foreground/40 text-xs">·</span>
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            {new Date(job.completed_at).toLocaleDateString("en-US", {
-                              month: "short", day: "numeric", year: "numeric",
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0 ml-4">
-                      <span className="text-sm font-bold text-foreground">{job.amount}</span>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
-                      >
-                        <Circle className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`} />
-                        {cfg.label}
-                      </Badge>
-                      {job.reviewed ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Star className="w-3 h-3 fill-emerald-500 text-emerald-500" /> Reviewed
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
-                          onClick={() =>
-                            setReviewTarget({
-                              jobId: job.id,
-                              contractorId: job.contractor_id,
-                              title: job.title,
-                              escrowStatus: job.escrow_status,
-                            })
-                          }
-                        >
-                          <Star className="w-3 h-3" /> Rate
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Active projects from videos */}
       <Card className="border-border shadow-sm">
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -260,7 +149,15 @@ export function MyProjects() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <p className="text-center text-muted-foreground py-12 text-sm">Loading projects…</p>
+            <div className="flex items-center justify-center py-12 text-muted-foreground text-sm gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading projects…
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
+              <AlertTriangle className="w-6 h-6 text-destructive" />
+              <p className="text-sm text-destructive font-medium">Failed to load projects</p>
+              <p className="text-xs text-muted-foreground">{error}</p>
+            </div>
           ) : videos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
               <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
@@ -317,26 +214,6 @@ export function MyProjects() {
           )}
         </CardContent>
       </Card>
-
-      {/* Review sheet */}
-      <Sheet open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="font-heading">
-              Rate: {reviewTarget?.title}
-            </SheetTitle>
-          </SheetHeader>
-          {reviewTarget && (
-            <ReviewMediator
-              contractorId={reviewTarget.contractorId}
-              jobId={reviewTarget.jobId}
-              escrowStatus={reviewTarget.escrowStatus}
-              mode="form"
-              onSuccess={() => setReviewTarget(null)}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
