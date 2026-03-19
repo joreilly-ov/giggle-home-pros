@@ -39,6 +39,7 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <Link to="/dashboard" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Dashboard</Link>
               <Link to="/profile" className="flex items-center gap-1.5 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                 <User className="w-4 h-4" /> Profile
               </Link>
@@ -74,6 +75,7 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <Link to="/dashboard" className="block py-2 text-primary-foreground/90 font-medium">Dashboard</Link>
               <Link to="/profile" className="block py-2 text-primary-foreground/90 font-medium">Profile</Link>
               <button onClick={signOut} className="block py-2 text-primary-foreground/90 font-medium">Sign Out</button>
             </>
