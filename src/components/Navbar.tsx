@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavbarProps {
   variant?: "transparent" | "solid";
@@ -11,6 +12,22 @@ interface NavbarProps {
 const Navbar = ({ variant = "transparent" }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setDisplayName(null); return; }
+    supabase.from("contractors" as any).select("business_name").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data && (data as any).business_name) {
+          setDisplayName((data as any).business_name);
+        } else {
+          supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
+            .then(({ data: p }) => {
+              setDisplayName(p?.full_name || user.email?.split("@")[0] || "User");
+            });
+        }
+      });
+  }, [user]);
 
   const isSolid = variant === "solid";
 
@@ -39,6 +56,9 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <span className="text-xs font-medium text-primary-foreground/60 truncate max-w-[140px]">
+                {displayName ?? user.email}
+              </span>
               <Link to="/dashboard" className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Dashboard</Link>
               <Link to="/profile" className="flex items-center gap-1.5 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                 <User className="w-4 h-4" /> Profile
@@ -75,6 +95,9 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <div className="px-2 py-1.5 rounded bg-primary/10 mb-1">
+                <p className="text-xs font-medium text-primary-foreground/80 truncate">{displayName ?? user.email}</p>
+              </div>
               <Link to="/dashboard" className="block py-2 text-primary-foreground/90 font-medium">Dashboard</Link>
               <Link to="/profile" className="block py-2 text-primary-foreground/90 font-medium">Profile</Link>
               <button onClick={signOut} className="block py-2 text-primary-foreground/90 font-medium">Sign Out</button>
