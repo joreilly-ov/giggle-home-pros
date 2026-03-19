@@ -121,7 +121,37 @@ const Auth = () => {
 
         <div className="bg-card rounded-xl shadow-lg border border-border p-8">
           <h2 className="text-xl font-heading font-bold text-foreground mb-6">
-            {view === "sign-in" ? "Sign in" : "Create account"}
+            {view === "sign-in" ? "Sign in" : view === "sign-up" ? "Create account" : "Reset password"}
+          </h2>
+
+          {view === "forgot-password" ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <p className="text-sm text-muted-foreground">Enter your email and we'll send you a link to reset your password.</p>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Email address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send reset link"}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                <button onClick={() => setView("sign-in")} className="text-primary font-medium hover:underline inline-flex items-center gap-1">
+                  <ArrowLeft className="w-3 h-3" /> Back to sign in
+                </button>
+              </p>
+            </form>
+          ) : (
+          <>
           </h2>
 
           <form onSubmit={view === "sign-in" ? handleSignIn : handleSignUp} className="space-y-4">
