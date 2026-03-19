@@ -4,6 +4,7 @@ import { Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AnalysisResult, PhotoFile } from "./types";
 import PhotoGrid from "./PhotoGrid";
+import TaskBreakdown from "./TaskBreakdown";
 
 type Props = {
   result: AnalysisResult;
