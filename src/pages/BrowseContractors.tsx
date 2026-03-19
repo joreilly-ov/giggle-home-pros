@@ -57,8 +57,9 @@ const BrowseContractors = () => {
     if (!user) return;
 
     const fetchContractors = async () => {
-      const { data, error: fetchError } = await supabase
-        .from("contractors" as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: fetchError } = await (supabase as any)
+        .from("contractors")
         .select("id, user_id, business_name, postcode, phone, expertise, license_number, insurance_details")
         .order("created_at", { ascending: false });
 
