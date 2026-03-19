@@ -75,6 +75,7 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <Link to="/dashboard" className="block py-2 text-primary-foreground/90 font-medium">Dashboard</Link>
               <Link to="/profile" className="block py-2 text-primary-foreground/90 font-medium">Profile</Link>
               <button onClick={signOut} className="block py-2 text-primary-foreground/90 font-medium">Sign Out</button>
             </>
