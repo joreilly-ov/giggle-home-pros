@@ -95,6 +95,9 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
 
           {!loading && user && (
             <>
+              <div className="px-2 py-1.5 rounded bg-primary/10 mb-1">
+                <p className="text-xs font-medium text-primary-foreground/80 truncate">{displayName ?? user.email}</p>
+              </div>
               <Link to="/dashboard" className="block py-2 text-primary-foreground/90 font-medium">Dashboard</Link>
               <Link to="/profile" className="block py-2 text-primary-foreground/90 font-medium">Profile</Link>
               <button onClick={signOut} className="block py-2 text-primary-foreground/90 font-medium">Sign Out</button>
