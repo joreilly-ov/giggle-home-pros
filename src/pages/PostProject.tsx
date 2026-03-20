@@ -45,20 +45,16 @@ type AnalysisResult = {
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
-const urgencyColor = (val: string | number) => {
-  const s = String(val).toLowerCase();
-  const n = typeof val === "number" ? val : parseInt(s, 10);
-  if (s.includes("high") || n >= 8) return "bg-destructive/10 text-destructive";
-  if (s.includes("medium") || n >= 5) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-  return "bg-primary/10 text-primary";
+const URGENCY_STYLES: Record<string, { bg: string; label: string }> = {
+  emergency: { bg: "bg-destructive/10 text-destructive", label: "🚨 Emergency" },
+  high: { bg: "bg-destructive/10 text-destructive", label: "High" },
+  medium: { bg: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300", label: "Medium" },
+  low: { bg: "bg-primary/10 text-primary", label: "Low" },
 };
 
-const urgencyLabel = (val: string | number) => {
-  const s = String(val).toLowerCase();
-  const n = typeof val === "number" ? val : parseInt(s, 10);
-  if (s.includes("high") || n >= 8) return typeof val === "number" ? `High (${val}/10)` : String(val);
-  if (s.includes("medium") || n >= 5) return typeof val === "number" ? `Medium (${val}/10)` : String(val);
-  return typeof val === "number" ? `Low (${val}/10)` : String(val);
+const getUrgencyStyle = (urgency: string) => {
+  const key = urgency.toLowerCase();
+  return URGENCY_STYLES[key] || { bg: "bg-muted text-muted-foreground", label: urgency };
 };
 
 const PostProject = () => {
