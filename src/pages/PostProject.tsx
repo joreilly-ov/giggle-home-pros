@@ -353,11 +353,35 @@ const PostProject = () => {
             </div>
 
             <div className="flex gap-3">
+              <Button
+                onClick={async () => {
+                  // Update the most recent draft to 'posted'
+                  if (user) {
+                    const { data: drafts } = await supabase
+                      .from("videos" as any)
+                      .select("id")
+                      .eq("user_id", user.id)
+                      .eq("status", "draft")
+                      .order("created_at", { ascending: false })
+                      .limit(1);
+
+                    if (drafts && drafts.length > 0) {
+                      await supabase
+                        .from("videos" as any)
+                        .update({ status: "posted" } as any)
+                        .eq("id", (drafts[0] as any).id);
+                    }
+                  }
+                  toast({ title: "Project posted!", description: "Contractors can now see and bid on your project." });
+                  navigate("/dashboard");
+                }}
+                className="gap-2 flex-1"
+                size="lg"
+              >
+                <CheckCircle className="w-4 h-4" /> Post to Contractors
+              </Button>
               <Button variant="outline" onClick={clearFile} className="gap-2">
                 <Upload className="w-4 h-4" /> Upload Another
-              </Button>
-              <Button onClick={() => navigate("/dashboard")}>
-                Back to Dashboard
               </Button>
             </div>
           </div>
