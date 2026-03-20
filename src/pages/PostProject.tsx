@@ -11,10 +11,27 @@ import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X, Wrenc
 import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
 import TaskBreakdown from "@/components/photo-analyzer/TaskBreakdown";
 
+type VideoMetadata = {
+  duration_seconds?: number;
+  width?: number;
+  height?: number;
+  latitude?: number;
+  longitude?: number;
+  location_source?: string;
+};
+
 type AnalysisResult = {
+  // Actual Gemini response fields
+  problem_type?: string;
+  description?: string;
+  location_in_home?: string;
+  urgency?: string; // "low" | "medium" | "high" | "emergency"
+  materials_involved?: string[];
+  clarifying_questions?: string[];
+  video_metadata?: VideoMetadata;
+  // Legacy/fallback fields the UI also checks
   summary?: string;
   likely_issue?: string;
-  urgency?: string;
   urgency_score?: number;
   trade_category?: string;
   materials?: string[];
@@ -22,11 +39,7 @@ type AnalysisResult = {
   recommendations?: string[];
   required_tools?: string[];
   estimated_parts?: string[];
-  video_metadata?: Record<string, unknown>;
-  description?: string;
-  location_in_home?: string;
   materials_components_visible?: string[];
-  clarifying_questions?: string[];
   [key: string]: unknown;
 };
 
