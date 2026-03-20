@@ -9,12 +9,20 @@ import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X } from
 
 type AnalysisResult = {
   summary?: string;
+  likely_issue?: string;
   urgency?: string;
+  urgency_score?: number;
   trade_category?: string;
   materials?: string[];
   estimated_cost_range?: string;
   recommendations?: string[];
+  required_tools?: string[];
+  estimated_parts?: string[];
   video_metadata?: Record<string, unknown>;
+  description?: string;
+  location_in_home?: string;
+  materials_components_visible?: string[];
+  clarifying_questions?: string[];
   [key: string]: unknown;
 };
 
