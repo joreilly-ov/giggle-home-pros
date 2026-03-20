@@ -104,18 +104,23 @@ const PostProject = () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
-      const response = await supabase.functions.invoke("analyse-video", {
-        body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      const response = await fetch(
+        "https://stable-gig-374485351183.europe-west1.run.app/analyse",
+        {
+          method: "POST",
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      );
 
       setProgress(90);
 
-      if (response.error) {
-        throw new Error(response.error.message || "Analysis failed");
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Analysis failed (${response.status})`);
       }
 
-      const data = response.data as AnalysisResult;
+      const data = await response.json() as AnalysisResult;
       setResult(data);
       setProgress(100);
 
