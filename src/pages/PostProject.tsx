@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X } from "lucide-react";
+import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X, Wrench, Package } from "lucide-react";
+import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
+import TaskBreakdown from "@/components/photo-analyzer/TaskBreakdown";
 
 type AnalysisResult = {
   summary?: string;
@@ -28,6 +32,22 @@ type AnalysisResult = {
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
+const urgencyColor = (val: string | number) => {
+  const s = String(val).toLowerCase();
+  const n = typeof val === "number" ? val : parseInt(s, 10);
+  if (s.includes("high") || n >= 8) return "bg-destructive/10 text-destructive";
+  if (s.includes("medium") || n >= 5) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+  return "bg-primary/10 text-primary";
+};
+
+const urgencyLabel = (val: string | number) => {
+  const s = String(val).toLowerCase();
+  const n = typeof val === "number" ? val : parseInt(s, 10);
+  if (s.includes("high") || n >= 8) return typeof val === "number" ? `High (${val}/10)` : String(val);
+  if (s.includes("medium") || n >= 5) return typeof val === "number" ? `Medium (${val}/10)` : String(val);
+  return typeof val === "number" ? `Low (${val}/10)` : String(val);
+};
+
 const PostProject = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +56,8 @@ const PostProject = () => {
 
   const [file, setFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [tradeCategory, setTradeCategory] = useState("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -79,6 +101,8 @@ const PostProject = () => {
     setFile(null);
     if (videoPreview) URL.revokeObjectURL(videoPreview);
     setVideoPreview(null);
+    setDescription("");
+    setTradeCategory("");
     setResult(null);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -93,6 +117,13 @@ const PostProject = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
+
+      if (description.trim().length >= 10) {
+        formData.append("description", description.trim());
+      }
+      if (tradeCategory && tradeCategory !== "_auto") {
+        formData.append("trade_category", tradeCategory);
+      }
 
       // Try to get browser location
       if ("geolocation" in navigator) {
@@ -123,18 +154,17 @@ const PostProject = () => {
 
       setProgress(90);
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `Analysis failed (${response.status})`);
-      }
+      const data = await response.json();
+      console.log("[PostProject] API response:", JSON.stringify(data, null, 2));
 
-      const data = await response.json() as AnalysisResult;
-      setResult(data);
+      if (!response.ok) throw new Error(data?.error || `Analysis failed (${response.status})`);
+      if (data?.error) throw new Error(data.error);
+
+      setResult(data as AnalysisResult);
       setProgress(100);
 
       // Save analysis to videos table
       if (user) {
-        // Fetch customer location for the job posting
         const { data: profile } = await supabase
           .from("profiles")
           .select("postcode, city, state")
@@ -165,6 +195,8 @@ const PostProject = () => {
   };
 
   if (loading) return null;
+
+  const displayUrgency = result?.urgency_score ?? result?.urgency;
 
   return (
     <div className="min-h-screen bg-background">
@@ -238,6 +270,37 @@ const PostProject = () => {
                   </div>
                 </div>
 
+                {/* Description */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Describe the problem <span className="text-muted-foreground font-normal">(min 10 characters)</span>
+                  </label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="e.g. Water is leaking from under the kitchen sink when the tap is running..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+
+                {/* Trade category */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Trade category</label>
+                  <Select value={tradeCategory} onValueChange={setTradeCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Auto-detect (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRADE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value || "_auto"} value={cat.value || "_auto"}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {uploading && (
                   <div className="space-y-2">
                     <Progress value={progress} className="h-2" />
@@ -281,7 +344,7 @@ const PostProject = () => {
         {result && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-success" />
+              <CheckCircle className="w-8 h-8 text-primary" />
               <div>
                 <h2 className="text-2xl font-heading font-bold text-foreground">Analysis Complete</h2>
                 <p className="text-muted-foreground">Here's what our AI found</p>
@@ -289,28 +352,32 @@ const PostProject = () => {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {result.summary && (
+              {/* Summary / Likely Issue */}
+              {(result.summary || result.likely_issue) && (
                 <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Summary</h3>
-                  <p className="text-foreground">{result.summary}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                    {result.likely_issue ? "Likely Issue" : "Summary"}
+                  </h3>
+                  <p className="text-foreground text-lg font-semibold">
+                    {result.likely_issue || result.summary}
+                  </p>
+                  {result.likely_issue && result.summary && (
+                    <p className="text-muted-foreground mt-2">{result.summary}</p>
+                  )}
                 </div>
               )}
 
-              {result.urgency && (
+              {/* Urgency */}
+              {displayUrgency != null && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Urgency</h3>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    result.urgency.toLowerCase().includes("high")
-                      ? "bg-destructive/10 text-destructive"
-                      : result.urgency.toLowerCase().includes("medium")
-                      ? "bg-accent/10 text-accent"
-                      : "bg-success/10 text-success"
-                  }`}>
-                    {result.urgency}
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${urgencyColor(displayUrgency)}`}>
+                    {urgencyLabel(displayUrgency)}
                   </span>
                 </div>
               )}
 
+              {/* Trade Category */}
               {result.trade_category && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Trade Category</h3>
@@ -318,6 +385,7 @@ const PostProject = () => {
                 </div>
               )}
 
+              {/* Estimated Cost */}
               {result.estimated_cost_range && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Estimated Cost</h3>
@@ -325,6 +393,43 @@ const PostProject = () => {
                 </div>
               )}
 
+              {/* Location in Home */}
+              {result.location_in_home && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Location</h3>
+                  <p className="text-foreground font-semibold">{result.location_in_home}</p>
+                </div>
+              )}
+
+              {/* Required Tools */}
+              {result.required_tools && result.required_tools.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Required Tools</h3>
+                  <ul className="space-y-1">
+                    {result.required_tools.map((tool, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <Wrench className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" /> {tool}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Estimated Parts */}
+              {result.estimated_parts && result.estimated_parts.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Estimated Parts</h3>
+                  <ul className="space-y-1">
+                    {result.estimated_parts.map((part, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" /> {part}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Materials */}
               {result.materials && result.materials.length > 0 && (
                 <div className="bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Materials Needed</h3>
@@ -338,13 +443,42 @@ const PostProject = () => {
                 </div>
               )}
 
+              {/* Materials/Components Visible */}
+              {result.materials_components_visible && result.materials_components_visible.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Visible Components</h3>
+                  <ul className="space-y-1">
+                    {result.materials_components_visible.map((m, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <span className="text-primary mt-0.5">•</span> {m}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Recommendations */}
               {result.recommendations && result.recommendations.length > 0 && (
                 <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Recommendations</h3>
                   <ul className="space-y-2">
                     {result.recommendations.map((r, i) => (
                       <li key={i} className="text-foreground text-sm flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" /> {r}
+                        <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" /> {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Clarifying Questions */}
+              {result.clarifying_questions && result.clarifying_questions.length > 0 && (
+                <div className="md:col-span-2 bg-card border border-border rounded-xl p-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">Questions to Consider</h3>
+                  <ul className="space-y-2">
+                    {result.clarifying_questions.map((q, i) => (
+                      <li key={i} className="text-foreground text-sm flex items-start gap-2">
+                        <span className="text-primary font-semibold">{i + 1}.</span> {q}
                       </li>
                     ))}
                   </ul>
@@ -352,10 +486,16 @@ const PostProject = () => {
               )}
             </div>
 
+            {/* Task Breakdown */}
+            <TaskBreakdown
+              description={result.likely_issue || result.summary || ""}
+              urgency={result.urgency_score != null ? String(result.urgency_score) : result.urgency}
+              requiredTools={result.required_tools}
+            />
+
             <div className="flex gap-3">
               <Button
                 onClick={async () => {
-                  // Update the most recent draft to 'posted'
                   if (user) {
                     const { data: drafts } = await supabase
                       .from("videos" as any)
