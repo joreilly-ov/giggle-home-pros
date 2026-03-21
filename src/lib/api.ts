@@ -1,0 +1,105 @@
+import { supabase } from "@/integrations/supabase/client";
+
+const BASE = "https://stable-gig-374485351183.europe-west1.run.app";
+
+async function authHeaders(): Promise<HeadersInit> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = await authHeaders();
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { ...headers, ...(init?.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed (${res.status})`);
+  }
+  return res.json() as Promise<T>;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type JobStatus =
+  | "draft"
+  | "open"
+  | "awarded"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export type BidStatus = "pending" | "accepted" | "rejected";
+
+export interface Job {
+  id: string;
+  user_id: string;
+  status: JobStatus;
+  analysis_result: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractorSummary {
+  id: string;
+  business_name: string;
+  postcode?: string;
+  expertise?: string[];
+}
+
+export interface Bid {
+  id: string;
+  job_id: string;
+  contractor_id: string;
+  amount_pence: number;
+  note: string;
+  status: BidStatus;
+  created_at: string;
+  contractor?: ContractorSummary;
+  job?: Job;
+}
+
+// ─── API client ───────────────────────────────────────────────────────────────
+
+export const api = {
+  jobs: {
+    create: (analysisResult: Record<string, unknown>) =>
+      request<Job>("/jobs", {
+        method: "POST",
+        body: JSON.stringify({ analysis_result: analysisResult }),
+      }),
+
+    list: () => request<Job[]>("/jobs"),
+
+    get: (id: string) => request<Job>(`/jobs/${id}`),
+
+    updateStatus: (id: string, status: JobStatus) =>
+      request<Job>(`/jobs/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
+  },
+
+  bids: {
+    submit: (jobId: string, amountPence: number, note: string) =>
+      request<Bid>(`/jobs/${jobId}/bids`, {
+        method: "POST",
+        body: JSON.stringify({ amount_pence: amountPence, note }),
+      }),
+
+    listForJob: (jobId: string) => request<Bid[]>(`/jobs/${jobId}/bids`),
+
+    respond: (jobId: string, bidId: string, action: "accept" | "reject") =>
+      request<Bid>(`/jobs/${jobId}/bids/${bidId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action }),
+      }),
+
+    mine: () => request<Bid[]>("/me/bids"),
+  },
+};

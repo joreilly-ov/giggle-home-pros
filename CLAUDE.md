@@ -61,6 +61,31 @@ Always check contractor first (see `Auth.tsx` redirect logic).
 - Customer onboarding sets `setup_complete` in the `user_metadata` table via Supabase
 - Password reset: Supabase appends `#access_token=...&type=recovery` to the redirect URL; `ResetPassword.tsx` listens for the `PASSWORD_RECOVERY` auth event and calls `supabase.auth.updateUser({ password })`
 
+## Bidding API (Cloud Run)
+
+All job and bid operations go through the Cloud Run backend (`https://stable-gig-374485351183.europe-west1.run.app`). The typed client lives at `src/lib/api.ts`.
+
+| Method | Path | Who can call | Notes |
+|--------|------|-------------|-------|
+| `POST` | `/jobs` | Homeowner | Creates a draft job; body: `{ analysis_result }` |
+| `GET` | `/jobs` | Both | Homeowners see all their jobs; contractors see only `open` ones |
+| `GET` | `/jobs/:id` | Both | Owner sees any status; contractor sees only `open` |
+| `PATCH` | `/jobs/:id` | Homeowner | Body: `{ status }` — server enforces valid transitions |
+| `POST` | `/jobs/:id/bids` | Contractor | Body: `{ amount_pence, note }` |
+| `GET` | `/jobs/:id/bids` | Both | Owner sees all bids + contractor info; contractor sees only their own |
+| `PATCH` | `/jobs/:id/bids/:bidId` | Homeowner | Body: `{ action: "accept" \| "reject" }` — accept atomically rejects all others |
+| `GET` | `/me/bids` | Contractor | All their bids across jobs, includes `job` nested |
+
+**Job status lifecycle:** `draft → open → awarded → in_progress → completed | cancelled`
+
+**Frontend components:**
+- `src/lib/api.ts` — typed API client (all auth headers handled here)
+- `src/components/contractor/JobFeed.tsx` — browse open jobs + submit bid form
+- `src/components/customer/JobBids.tsx` — homeowner bid review (accept / decline)
+- `src/pages/PostProject.tsx` — after video analysis, "Post for Bids" creates + publishes the job
+- `src/components/customer/MyProjects.tsx` — lists jobs from `GET /jobs`, status actions, bids panel in sheet
+- `src/components/contractor/ActiveBids.tsx` — contractor's bid history from `GET /me/bids`
+
 ## Supabase edge functions
 
 All edge functions live in `supabase/functions/` (source of truth: https://github.com/vaggab0nd/stable-gig).

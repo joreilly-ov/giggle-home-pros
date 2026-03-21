@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ContractorSidebar } from "@/components/contractor/ContractorSidebar";
 import { ActiveBids } from "@/components/contractor/ActiveBids";
+import { JobFeed } from "@/components/contractor/JobFeed";
 import { ProfileSettings } from "@/components/contractor/ProfileSettings";
 import { Verification } from "@/components/contractor/Verification";
 import { ReviewMediator } from "@/components/ReviewMediator";
