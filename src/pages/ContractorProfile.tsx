@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Loader2 } from "lucide-react";
-import { JobFeed } from "@/components/contractor/JobFeed";
 
 const PAGE_META: Record<string, { title: string; description: string }> = {
   "": { title: "Job Feed", description: "Browse available jobs matching your expertise." },

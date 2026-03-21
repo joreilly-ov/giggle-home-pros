@@ -31,16 +31,6 @@ import { JobBids } from "@/components/customer/JobBids";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-interface VideoProject {
-  id: string;
-  filename: string;
-  created_at: string;
-  status: string;
-  analysis_result: Record<string, unknown> | null;
-}
-
 // ─── Status display config ────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<
@@ -49,8 +39,7 @@ const STATUS_CONFIG: Record<
 > = {
   draft: {
     label: "Draft",
-    classes:
-      "bg-secondary text-muted-foreground border-border",
+    classes: "bg-secondary text-muted-foreground border-border",
     dot: "bg-muted-foreground/60",
   },
   open: {
@@ -82,6 +71,19 @@ const STATUS_CONFIG: Record<
   },
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function projectTitle(job: Job): string {
+  const r = job.analysis_result;
+  const trade = (r?.problem_type ?? r?.trade_category) as string | undefined;
+  const date = new Date(job.created_at).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+  if (trade) return `${trade.charAt(0).toUpperCase() + trade.slice(1)} Issue – ${date}`;
+  return `Home Project – ${date}`;
+}
+
 // ─── Detail sheet content ─────────────────────────────────────────────────────
 
 interface JobDetailProps {
@@ -95,8 +97,20 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
   const [transitioning, setTransitioning] = useState(false);
 
   const r = job.analysis_result as Record<string, unknown> | null;
-  const urgency = r?.urgency as string | undefined;
+  const urgency = (r?.urgency as string | undefined)?.toLowerCase();
+  const description = (r?.description ?? r?.summary) as string | undefined;
+  const problemType = (r?.problem_type ?? r?.trade_category) as string | undefined;
+  const locationInHome = r?.location_in_home as string | undefined;
+  const materials = (r?.materials_involved ?? r?.materials) as string[] | undefined;
+  const questions = r?.clarifying_questions as string[] | undefined;
+  const meta = r?.video_metadata as Record<string, unknown> | undefined;
   const cfg = STATUS_CONFIG[job.status];
+
+  const urgencyStyle = urgency?.includes("emergency") || urgency?.includes("high")
+    ? "bg-destructive/10 text-destructive"
+    : urgency?.includes("medium")
+    ? "bg-accent/10 text-accent-foreground"
+    : "bg-primary/10 text-primary";
 
   const transition = async (status: JobStatus, label: string) => {
     setTransitioning(true);
@@ -208,12 +222,12 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
       {/* Analysis details */}
       {r && (
         <div className="space-y-3 mb-6">
-          {r.summary && (
-            <div className="bg-card border border-border rounded-xl p-4">
+          {description && (
+            <div className="bg-card border border-border rounded-xl p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                Summary
+                AI Summary
               </p>
-              <p className="text-sm text-foreground">{r.summary as string}</p>
+              <p className="text-sm text-foreground leading-relaxed">{description}</p>
             </div>
           )}
 
@@ -223,68 +237,86 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Urgency
                 </p>
-                <span
-                  className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    urgency.toLowerCase().includes("high")
-                      ? "bg-destructive/10 text-destructive"
-                      : urgency.toLowerCase().includes("medium")
-                      ? "bg-accent/10 text-accent-foreground"
-                      : "bg-primary/10 text-primary"
-                  }`}
-                >
-                  {urgency}
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${urgencyStyle}`}>
+                  {urgency === "emergency" ? "🚨 Emergency" : urgency}
                 </span>
               </div>
             )}
-
-            {r.trade_category && (
+            {problemType && (
               <div className="bg-card border border-border rounded-xl p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Trade
                 </p>
-                <p className="text-sm font-semibold text-foreground">
-                  {r.trade_category as string}
-                </p>
+                <p className="text-sm font-semibold text-foreground capitalize">{problemType}</p>
               </div>
             )}
-
-            {r.estimated_cost_range && (
-              <div className="col-span-2 bg-card border border-border rounded-xl p-4">
+            {locationInHome && (
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Estimated Cost
+                  Location
+                </p>
+                <p className="text-sm font-semibold text-foreground capitalize">{locationInHome}</p>
+              </div>
+            )}
+            {meta?.duration_seconds && (
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Video
                 </p>
                 <p className="text-sm font-semibold text-foreground">
-                  {r.estimated_cost_range as string}
+                  {Math.round(meta.duration_seconds as number)}s
+                  {meta.width && ` · ${meta.width}×${meta.height}`}
                 </p>
               </div>
             )}
           </div>
 
-          {Array.isArray(r.materials) && r.materials.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                Materials Needed
+          {Array.isArray(materials) && materials.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Materials Involved
               </p>
-              <ul className="space-y-1">
-                {(r.materials as string[]).map((m, i) => (
+              <div className="flex flex-wrap gap-2">
+                {materials.map((m, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">{m}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(questions) && questions.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Questions for the Tradesperson
+              </p>
+              <ul className="space-y-2">
+                {questions.map((q, i) => (
                   <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span> {m}
+                    <Circle className="w-3 h-3 text-primary shrink-0 mt-1" /> {q}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {Array.isArray(r.recommendations) && r.recommendations.length > 0 && (
+          {r.estimated_cost_range && (
             <div className="bg-card border border-border rounded-xl p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Estimated Cost
+              </p>
+              <p className="text-sm font-semibold text-foreground">{r.estimated_cost_range as string}</p>
+            </div>
+          )}
+
+          {Array.isArray(r.recommendations) && r.recommendations.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                 Recommendations
               </p>
               <ul className="space-y-2">
                 {(r.recommendations as string[]).map((rec, i) => (
                   <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
-                    {rec}
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" /> {rec}
                   </li>
                 ))}
               </ul>
@@ -313,7 +345,6 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function MyProjects() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -321,30 +352,24 @@ export function MyProjects() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) return;
-    supabase
-      .from("videos")
-      .select("id, filename, created_at, status, analysis_result")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data, error: fetchError }) => {
-        if (fetchError) {
-          setError(fetchError.message);
-        } else {
-          setVideos((data as VideoProject[]) ?? []);
-        }
-        setLoading(false);
-      });
-  }, [user]);
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.jobs.list();
+      setJobs(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load projects");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Reload and refresh selected job when status changes
   const handleStatusChanged = useCallback(async () => {
     await load();
-    // Re-fetch the selected job to reflect new status
     if (selectedJob) {
       try {
         const updated = await api.jobs.get(selectedJob.id);
@@ -355,15 +380,10 @@ export function MyProjects() {
     }
   }, [load, selectedJob]);
 
-  function projectTitle(v: VideoProject): string {
-    const r = v.analysis_result;
-    const trade = (r?.problem_type ?? r?.trade_category) as string | undefined;
-    const date = new Date(v.created_at).toLocaleDateString("en-GB", {
-      day: "numeric", month: "short",
-    });
-    if (trade) return `${trade.charAt(0).toUpperCase() + trade.slice(1)} Issue – ${date}`;
-    return `Home Project – ${date}`;
-  }
+  const completedCount = jobs.filter((j) => j.status === "completed").length;
+  const activeCount = jobs.filter(
+    (j) => j.status !== "completed" && j.status !== "cancelled"
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -427,9 +447,7 @@ export function MyProjects() {
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
               <AlertTriangle className="w-6 h-6 text-destructive" />
-              <p className="text-sm text-destructive font-medium">
-                Failed to load projects
-              </p>
+              <p className="text-sm text-destructive font-medium">Failed to load projects</p>
               <p className="text-xs text-muted-foreground">{error}</p>
             </div>
           ) : jobs.length === 0 ? (
@@ -438,18 +456,12 @@ export function MyProjects() {
                 <PlusCircle className="w-6 h-6 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">
-                  No projects yet
-                </p>
+                <p className="text-sm font-semibold text-foreground">No projects yet</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Post a video of your job and get quotes from local contractors.
                 </p>
               </div>
-              <Button
-                size="sm"
-                onClick={() => navigate("/post-project")}
-                className="mt-1"
-              >
+              <Button size="sm" onClick={() => navigate("/post-project")} className="mt-1">
                 Post your first project
               </Button>
             </div>
@@ -473,10 +485,11 @@ export function MyProjects() {
                         </p>
                         <span className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <Clock className="w-3 h-3" />
-                          {new Date(job.created_at).toLocaleDateString(
-                            "en-GB",
-                            { day: "numeric", month: "short", year: "numeric" }
-                          )}
+                          {new Date(job.created_at).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </span>
                       </div>
                     </div>
@@ -486,9 +499,7 @@ export function MyProjects() {
                         variant="outline"
                         className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
                       >
-                        <Circle
-                          className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`}
-                        />
+                        <Circle className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`} />
                         {cfg.label}
                       </Badge>
                       <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -502,154 +513,7 @@ export function MyProjects() {
       </Card>
 
       {/* Project detail sheet */}
-      <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          {selectedProject && (() => {
-            const r = selectedProject.analysis_result as Record<string, unknown> | null;
-            const urgency = (r?.urgency as string | undefined)?.toLowerCase();
-            const description = (r?.description ?? r?.summary) as string | undefined;
-            const problemType = (r?.problem_type ?? r?.trade_category) as string | undefined;
-            const locationInHome = r?.location_in_home as string | undefined;
-            const materials = (r?.materials_involved ?? r?.materials) as string[] | undefined;
-            const questions = r?.clarifying_questions as string[] | undefined;
-            const meta = r?.video_metadata as Record<string, unknown> | undefined;
-            const isPosted = selectedProject.status === "posted";
-
-            const urgencyStyle = urgency?.includes("emergency")
-              ? "bg-destructive/10 text-destructive"
-              : urgency?.includes("high")
-              ? "bg-destructive/10 text-destructive"
-              : urgency?.includes("medium")
-              ? "bg-accent/10 text-accent-foreground"
-              : "bg-primary/10 text-primary";
-
-            return (
-              <>
-                <SheetHeader className="mb-6">
-                  <SheetTitle className="font-heading">{projectTitle(selectedProject)}</SheetTitle>
-                  <p className="text-xs text-muted-foreground">
-                    Posted {new Date(selectedProject.created_at).toLocaleDateString("en-GB", {
-                      day: "numeric", month: "long", year: "numeric",
-                    })}
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className={`mt-2 w-fit text-xs font-semibold ${isPosted
-                      ? "bg-primary/10 text-primary border-primary/20"
-                      : "bg-secondary text-muted-foreground border-border"
-                    }`}
-                  >
-                    {isPosted ? "✅ Live — Contractors can see this" : "📝 Draft — Not visible to contractors yet"}
-                  </Badge>
-                </SheetHeader>
-
-                {!r ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-                    <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
-                    <p className="text-sm text-muted-foreground">Analysis in progress…</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Description */}
-                    {description && (
-                      <div className="bg-card border border-border rounded-xl p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">AI Summary</p>
-                        <p className="text-sm text-foreground leading-relaxed">{description}</p>
-                      </div>
-                    )}
-
-                    {/* Key info grid */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {urgency && (
-                        <div className="bg-card border border-border rounded-xl p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Urgency</p>
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${urgencyStyle}`}>
-                            {urgency === "emergency" ? "🚨 Emergency" : urgency}
-                          </span>
-                        </div>
-                      )}
-
-                      {problemType && (
-                        <div className="bg-card border border-border rounded-xl p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Trade</p>
-                          <p className="text-sm font-semibold text-foreground capitalize">{problemType}</p>
-                        </div>
-                      )}
-
-                      {locationInHome && (
-                        <div className="bg-card border border-border rounded-xl p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Location</p>
-                          <p className="text-sm font-semibold text-foreground capitalize">{locationInHome}</p>
-                        </div>
-                      )}
-
-                      {meta?.duration_seconds && (
-                        <div className="bg-card border border-border rounded-xl p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Video</p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {Math.round(meta.duration_seconds as number)}s
-                            {meta.width && ` · ${meta.width}×${meta.height}`}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Materials */}
-                    {Array.isArray(materials) && materials.length > 0 && (
-                      <div className="bg-card border border-border rounded-xl p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Materials Involved</p>
-                        <div className="flex flex-wrap gap-2">
-                          {materials.map((m, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">{m}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Clarifying questions */}
-                    {Array.isArray(questions) && questions.length > 0 && (
-                      <div className="bg-card border border-border rounded-xl p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Questions for the Tradesperson</p>
-                        <ul className="space-y-2">
-                          {questions.map((q, i) => (
-                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                              <Circle className="w-3 h-3 text-primary shrink-0 mt-1" /> {q}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Legacy fields fallback */}
-                    {r.estimated_cost_range && (
-                      <div className="bg-card border border-border rounded-xl p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Estimated Cost</p>
-                        <p className="text-sm font-semibold text-foreground">{r.estimated_cost_range as string}</p>
-                      </div>
-                    )}
-
-                    {Array.isArray(r.recommendations) && r.recommendations.length > 0 && (
-                      <div className="bg-card border border-border rounded-xl p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Recommendations</p>
-                        <ul className="space-y-2">
-                          {(r.recommendations as string[]).map((rec, i) => (
-                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" /> {rec}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </SheetContent>
-      </Sheet>
-
-      {/* Review sheet — ready for when real completed jobs with contractor assignments exist */}
-      <Sheet open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
+      <Sheet open={!!selectedJob} onOpenChange={(open) => !open && setSelectedJob(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {selectedJob && (
             <JobDetail
