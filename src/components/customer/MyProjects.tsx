@@ -10,15 +10,16 @@ import {
 } from "@/components/ui/sheet";
 import {
   ClipboardList,
+  CheckCircle,
   CheckCircle2,
   Clock,
-  Star,
   Video,
   Circle,
   PlusCircle,
   ArrowUpRight,
   Loader2,
   AlertTriangle,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +69,7 @@ export function MyProjects() {
     title: string;
     escrowStatus: string;
   } | null>(null);
+  const [selectedProject, setSelectedProject] = useState<VideoProject | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -93,8 +95,12 @@ export function MyProjects() {
   const completedCount = analyzedVideos.length;
 
   function projectTitle(v: VideoProject): string {
-    const name = v.filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-    return name.charAt(0).toUpperCase() + name.slice(1);
+    const trade = v.analysis_result?.trade_category as string | undefined;
+    const date = new Date(v.created_at).toLocaleDateString("en-GB", {
+      day: "numeric", month: "short",
+    });
+    if (trade) return `${trade} Issue – ${date}`;
+    return `Home Project – ${date}`;
   }
 
   return (
@@ -188,7 +194,8 @@ export function MyProjects() {
                 return (
                   <div
                     key={v.id}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-secondary/40 transition-colors"
+                    className="flex items-center justify-between px-6 py-4 hover:bg-secondary/40 transition-colors cursor-pointer"
+                    onClick={() => setSelectedProject(v)}
                   >
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0 mt-0.5">
@@ -207,13 +214,16 @@ export function MyProjects() {
                       </div>
                     </div>
 
-                    <Badge
-                      variant="outline"
-                      className={`text-xs font-semibold border flex items-center gap-1.5 shrink-0 ml-4 ${cfg.classes}`}
-                    >
-                      <Circle className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`} />
-                      {cfg.label}
-                    </Badge>
+                    <div className="flex items-center gap-2 shrink-0 ml-4">
+                      <Badge
+                        variant="outline"
+                        className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
+                      >
+                        <Circle className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`} />
+                        {cfg.label}
+                      </Badge>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
                   </div>
                 );
               })}
@@ -221,6 +231,101 @@ export function MyProjects() {
           )}
         </CardContent>
       </Card>
+
+      {/* Project detail sheet */}
+      <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {selectedProject && (() => {
+            const r = selectedProject.analysis_result as Record<string, unknown> | null;
+            const urgency = r?.urgency as string | undefined;
+            return (
+              <>
+                <SheetHeader className="mb-6">
+                  <SheetTitle className="font-heading">{projectTitle(selectedProject)}</SheetTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Posted {new Date(selectedProject.created_at).toLocaleDateString("en-GB", {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </p>
+                </SheetHeader>
+
+                {!r ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                    <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+                    <p className="text-sm text-muted-foreground">Analysis in progress…</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {r.summary && (
+                      <div className="bg-card border border-border rounded-xl p-5">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Summary</p>
+                        <p className="text-sm text-foreground">{r.summary as string}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {urgency && (
+                        <div className="bg-card border border-border rounded-xl p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Urgency</p>
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            urgency.toLowerCase().includes("high")
+                              ? "bg-destructive/10 text-destructive"
+                              : urgency.toLowerCase().includes("medium")
+                              ? "bg-accent/10 text-accent-foreground"
+                              : "bg-primary/10 text-primary"
+                          }`}>
+                            {urgency}
+                          </span>
+                        </div>
+                      )}
+
+                      {r.trade_category && (
+                        <div className="bg-card border border-border rounded-xl p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Trade</p>
+                          <p className="text-sm font-semibold text-foreground">{r.trade_category as string}</p>
+                        </div>
+                      )}
+
+                      {r.estimated_cost_range && (
+                        <div className="col-span-2 bg-card border border-border rounded-xl p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Estimated Cost</p>
+                          <p className="text-sm font-semibold text-foreground">{r.estimated_cost_range as string}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {Array.isArray(r.materials) && r.materials.length > 0 && (
+                      <div className="bg-card border border-border rounded-xl p-5">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Materials Needed</p>
+                        <ul className="space-y-1.5">
+                          {(r.materials as string[]).map((m, i) => (
+                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                              <span className="text-primary mt-0.5">•</span> {m}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {Array.isArray(r.recommendations) && r.recommendations.length > 0 && (
+                      <div className="bg-card border border-border rounded-xl p-5">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Recommendations</p>
+                        <ul className="space-y-2">
+                          {(r.recommendations as string[]).map((rec, i) => (
+                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                              <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" /> {rec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
 
       {/* Review sheet — ready for when real completed jobs with contractor assignments exist */}
       <Sheet open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
