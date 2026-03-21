@@ -76,7 +76,7 @@ export function MyProjects() {
     if (!user) return;
     supabase
       .from("videos")
-      .select("id, filename, created_at, analysis_result")
+      .select("id, filename, created_at, status, analysis_result")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data, error: fetchError }) => {
