@@ -23,6 +23,7 @@ import AIBiddingTools from "./pages/AIBiddingTools.tsx";
 import SameDayPayments from "./pages/SameDayPayments.tsx";
 import HowEscrowWorks from "./pages/HowEscrowWorks.tsx";
 import BrowseContractors from "./pages/BrowseContractors.tsx";
+import Install from "./pages/Install.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/same-day-payments" element={<SameDayPayments />} />
             <Route path="/how-escrow-works" element={<HowEscrowWorks />} />
             <Route path="/browse-contractors" element={<BrowseContractors />} />
+            <Route path="/install" element={<Install />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
