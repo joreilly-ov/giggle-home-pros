@@ -10,6 +10,15 @@
 - **React Router v6** for routing — all routes defined in `src/App.tsx`
 - **Supabase** for auth, database, and edge functions — client at `src/integrations/supabase/client.ts`, types at `src/integrations/supabase/types.ts`
 - **AuthContext** (`src/contexts/AuthContext.tsx`) exposes `user`, `session`, `loading`, `signOut`
+- **PWA** — the app is installable on iOS and Android home screens. The web app manifest and service worker are managed by Lovable's deployment platform, not stored as files in this repo. No `vite-plugin-pwa` or local `manifest.json` to maintain here.
+
+### Mobile / PWA considerations
+
+Since users install and run this on mobile home screens, keep these in mind when building UI:
+- All interactive elements need adequate tap targets (min 44×44px)
+- Avoid hover-only affordances — use tap/focus states too
+- Camera access (video recording for project posting) must be requested gracefully — some browsers on iOS require HTTPS (satisfied in production)
+- The video upload flow (`PostProject.tsx`) calls the Cloud Run endpoint directly (`https://stable-gig-374485351183.europe-west1.run.app/analyse`) to avoid edge function payload and timeout limits
 
 ## User role detection
 
