@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X } from "lucide-react";
+import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X, Gavel } from "lucide-react";
+import { api } from "@/lib/api";
 
 type AnalysisResult = {
   summary?: string;
@@ -32,6 +33,7 @@ const PostProject = () => {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth", { replace: true });
@@ -322,11 +324,43 @@ const PostProject = () => {
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                onClick={async () => {
+                  if (!result) return;
+                  setPosting(true);
+                  try {
+                    const job = await api.jobs.create(result as Record<string, unknown>);
+                    await api.jobs.updateStatus(job.id, "open");
+                    toast({
+                      title: "Job posted!",
+                      description: "Contractors can now see your job and submit bids.",
+                    });
+                    navigate("/dashboard");
+                  } catch (e) {
+                    toast({
+                      title: "Failed to post job",
+                      description: e instanceof Error ? e.message : "Something went wrong",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setPosting(false);
+                  }
+                }}
+                disabled={posting}
+                className="gap-2 flex-1 sm:flex-none"
+                size="lg"
+              >
+                {posting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Posting…</>
+                ) : (
+                  <><Gavel className="w-4 h-4" /> Post for Bids</>
+                )}
+              </Button>
               <Button variant="outline" onClick={clearFile} className="gap-2">
                 <Upload className="w-4 h-4" /> Upload Another
               </Button>
-              <Button onClick={() => navigate("/dashboard")}>
+              <Button variant="ghost" onClick={() => navigate("/dashboard")}>
                 Back to Dashboard
               </Button>
             </div>
