@@ -11,6 +11,7 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 - AI-powered photo and video analysis to help diagnose home repair needs
 - Escrow-based payments with same-day payout for contractors
 - Post-job tradesman rating system (Quality · Communication · Cleanliness) gated on escrow release, with admin-only private feedback
+- **Installable on iOS and Android** — works as a Progressive Web App (PWA) from the home screen
 
 ## User roles
 
@@ -27,8 +28,10 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 - **Frontend:** React 18, TypeScript, Vite
 - **UI:** shadcn/ui, Tailwind CSS, Radix UI
 - **Backend:** Supabase (Postgres + Auth + Edge Functions)
+- **AI analysis:** Cloud Run endpoint (`stable-gig`) — called directly from the browser for video, via edge function proxy for photos
 - **Routing:** React Router v6
 - **State:** TanStack Query
+- **PWA:** Web app manifest and service worker managed by Lovable's deployment platform — installable on iOS/Android
 
 ## Local development
 
@@ -112,3 +115,5 @@ The `ReviewMediator` component (`src/components/ReviewMediator.tsx`) handles the
 ## Deployment
 
 Deployed via [Lovable](https://lovable.dev). Push to `main` and Lovable auto-deploys.
+
+The PWA manifest and service worker are injected by Lovable at build time — there are no local `manifest.json` or SW files to maintain. To update PWA metadata (app name, icons, theme colour), use the Lovable project settings.
