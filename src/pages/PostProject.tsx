@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { RfpDocument, MatchResponse, Job } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Video, ArrowLeft, CheckCircle, AlertTriangle, Loader2, X, Wrench, Package } from "lucide-react";
 import { TRADE_CATEGORIES } from "@/components/photo-analyzer/types";
 import TaskBreakdown from "@/components/photo-analyzer/TaskBreakdown";
+import { ClarificationsStep } from "@/components/post-project/ClarificationsStep";
+import { RfpReviewStep } from "@/components/post-project/RfpReviewStep";
+import { MatchedContractorsStep } from "@/components/post-project/MatchedContractorsStep";
 
 type VideoMetadata = {
   duration_seconds?: number;
@@ -72,6 +77,12 @@ const PostProject = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
+  // Post-analysis flow state
+  type PostAnalysisStep = "analysis" | "clarifications" | "rfp" | "matches";
+  const [postStep, setPostStep] = useState<PostAnalysisStep>("analysis");
+  const [createdJob, setCreatedJob] = useState<Job | null>(null);
+  const [rfpDoc, setRfpDoc] = useState<RfpDocument | null>(null);
+  const [matchData, setMatchData] = useState<MatchResponse | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth", { replace: true });
@@ -505,37 +516,99 @@ const PostProject = () => {
               requiredTools={result.required_tools}
             />
 
-            <div className="flex gap-3">
-              <Button
-                onClick={async () => {
+            {/* Post-analysis stepped flow */}
+            {postStep === "analysis" && result.clarifying_questions && result.clarifying_questions.length > 0 && (
+              <div className="flex gap-3">
+                <Button
+                  onClick={async () => {
+                    // Create job via API first
+                    try {
+                      const job = await api.jobs.create(result as Record<string, unknown>);
+                      setCreatedJob(job);
+                      setPostStep("clarifications");
+                    } catch (err) {
+                      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to create job", variant: "destructive" });
+                    }
+                  }}
+                  className="gap-2 flex-1"
+                  size="lg"
+                >
+                  <CheckCircle className="w-4 h-4" /> Continue — Answer Questions
+                </Button>
+                <Button variant="outline" onClick={clearFile} className="gap-2">
+                  <Upload className="w-4 h-4" /> Upload Another
+                </Button>
+              </div>
+            )}
+
+            {postStep === "analysis" && (!result.clarifying_questions || result.clarifying_questions.length === 0) && (
+              <div className="flex gap-3">
+                <Button
+                  onClick={async () => {
+                    try {
+                      const job = await api.jobs.create(result as Record<string, unknown>);
+                      setCreatedJob(job);
+                      // Skip clarifications, generate RFP with empty answers
+                      const rfpRes = await api.rfp.generate(job.id, {});
+                      setRfpDoc(rfpRes.rfp_document);
+                      setPostStep("rfp");
+                    } catch (err) {
+                      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to create brief", variant: "destructive" });
+                    }
+                  }}
+                  className="gap-2 flex-1"
+                  size="lg"
+                >
+                  <CheckCircle className="w-4 h-4" /> Generate Project Brief
+                </Button>
+                <Button variant="outline" onClick={clearFile} className="gap-2">
+                  <Upload className="w-4 h-4" /> Upload Another
+                </Button>
+              </div>
+            )}
+
+            {postStep === "clarifications" && createdJob && result.clarifying_questions && (
+              <ClarificationsStep
+                questions={result.clarifying_questions}
+                onSubmit={async (answers) => {
+                  const rfpRes = await api.rfp.generate(createdJob.id, answers);
+                  setRfpDoc(rfpRes.rfp_document);
+                  setPostStep("rfp");
+                }}
+              />
+            )}
+
+            {postStep === "rfp" && rfpDoc && createdJob && (
+              <RfpReviewStep
+                rfp={rfpDoc}
+                onFindContractors={async () => {
+                  const matches = await api.matching.get(createdJob.id);
+                  setMatchData(matches);
+                  setPostStep("matches");
+                }}
+              />
+            )}
+
+            {postStep === "matches" && matchData && createdJob && (
+              <MatchedContractorsStep
+                matchData={matchData}
+                onPublish={async () => {
+                  await api.jobs.updateStatus(createdJob.id, "open");
+                  // Also update local videos table
                   if (user) {
-                    const { data: drafts } = await supabase
+                    await supabase
                       .from("videos" as any)
-                      .select("id")
+                      .update({ status: "posted" } as any)
                       .eq("user_id", user.id)
                       .eq("status", "draft")
-                      .order("created_at", { ascending: false })
+                      .order("created_at", { ascending: false } as any)
                       .limit(1);
-
-                    if (drafts && drafts.length > 0) {
-                      await supabase
-                        .from("videos" as any)
-                        .update({ status: "posted" } as any)
-                        .eq("id", (drafts[0] as any).id);
-                    }
                   }
-                  toast({ title: "Project posted!", description: "Contractors can now see and bid on your project." });
+                  toast({ title: "Job published!", description: "Contractors can now see and bid on your project." });
                   navigate("/dashboard");
                 }}
-                className="gap-2 flex-1"
-                size="lg"
-              >
-                <CheckCircle className="w-4 h-4" /> Post to Contractors
-              </Button>
-              <Button variant="outline" onClick={clearFile} className="gap-2">
-                <Upload className="w-4 h-4" /> Upload Another
-              </Button>
-            </div>
+              />
+            )}
           </div>
         )}
       </main>

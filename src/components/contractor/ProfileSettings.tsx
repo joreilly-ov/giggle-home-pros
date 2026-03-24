@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,8 @@ export function ProfileSettings() {
       toast({ title: "Error saving", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profile saved", description: "Your business details have been updated." });
+      // Silently embed profile for AI matching
+      api.contractor.embedProfile().catch(() => {});
       navigate("/contractor/profile");
     }
   };

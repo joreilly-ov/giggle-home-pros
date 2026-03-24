@@ -52,6 +52,34 @@ export interface ContractorSummary {
   expertise?: string[];
 }
 
+export interface RfpDocument {
+  executive_summary: string;
+  scope_of_work: string;
+  cost_estimate: { low: number; high: number };
+  permit_required: boolean;
+  permit_notes?: string;
+}
+
+export interface RfpResponse {
+  job_id: string;
+  rfp_document: RfpDocument;
+}
+
+export interface ContractorMatch {
+  contractor_id: string;
+  business_name: string;
+  trade_activities: string[];
+  years_experience?: number;
+  insurance_verified: boolean;
+  match_score?: number;
+}
+
+export interface MatchResponse {
+  job_id: string;
+  strategy: "embedding" | "activity_fallback";
+  contractors: ContractorMatch[];
+}
+
 export interface Bid {
   id: string;
   job_id: string;
@@ -101,5 +129,22 @@ export const api = {
       }),
 
     mine: () => request<Bid[]>("/me/bids"),
+  },
+
+  rfp: {
+    generate: (jobId: string, clarificationAnswers: Record<string, string>) =>
+      request<RfpResponse>(`/jobs/${jobId}/rfp`, {
+        method: "POST",
+        body: JSON.stringify({ clarification_answers: clarificationAnswers }),
+      }),
+  },
+
+  matching: {
+    get: (jobId: string) => request<MatchResponse>(`/jobs/${jobId}/contractors/matches`),
+  },
+
+  contractor: {
+    embedProfile: () =>
+      request<{ ok: boolean }>("/me/contractor/embed-profile", { method: "POST" }),
   },
 };
