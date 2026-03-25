@@ -94,7 +94,7 @@ All edge functions live in `supabase/functions/` (source of truth: https://githu
 |----------|---------|
 | `zip-lookup` | Returns `{ city, state }` from a 5-digit ZIP via zippopotam.us |
 | `analyse-photos` | Authenticated proxy — forwards photo data to external `ANALYSE_URL` |
-| `analyse-video` | Authenticated proxy — forwards video + geolocation to external `ANALYSE_URL` |
+| `analyse-video` | Authenticated proxy — **no longer called by the frontend**; `PostProject.tsx` calls Cloud Run directly to avoid payload/timeout limits |
 | `analyse-breakdown` | AI task breakdown (Google Gemini Flash) — input: job description; output: ordered task list with difficulty and time estimates |
 
 ## Running the project
@@ -169,3 +169,5 @@ Admins read it directly from `reviews` via service role.
 - The `overall` column in `reviews` is `GENERATED ALWAYS` — do not include it in INSERT payloads
 - `/how-escrow-works` is a placeholder and not yet implemented
 - `analyse-breakdown` uses a Lovable/Gemini API key (`LOVABLE_API_KEY`) — must be set in edge function secrets
+- The Supabase `videos` table still exists but `MyProjects.tsx` no longer queries it — the customer dashboard now fetches jobs from `GET /jobs` (Cloud Run). The table is effectively superseded by the jobs API for project listing.
+- `MyProjects.tsx` uses `api.jobs.get(id)` to re-fetch a single job after status transitions — the job must exist in the Cloud Run jobs table, not just in `videos`
