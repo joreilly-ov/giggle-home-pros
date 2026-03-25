@@ -80,6 +80,12 @@ export interface MatchResponse {
   contractors: ContractorMatch[];
 }
 
+export type EscrowStatusValue = "pending" | "held" | "funds_released" | "refunded";
+
+export interface EscrowStatus {
+  job_escrow_status: EscrowStatusValue;
+}
+
 export interface Bid {
   id: string;
   job_id: string;
@@ -146,5 +152,29 @@ export const api = {
   contractor: {
     embedProfile: () =>
       request<{ ok: boolean }>("/me/contractor/embed-profile", { method: "POST" }),
+  },
+
+  escrow: {
+    config: () => request<{ stripe_publishable_key: string }>("/escrow/config"),
+
+    get: (jobId: string) =>
+      request<EscrowStatus>(`/jobs/${jobId}/escrow`),
+
+    initiate: (jobId: string) =>
+      request<{ client_secret: string; amount_pence: number }>(`/jobs/${jobId}/escrow/initiate`, {
+        method: "POST",
+      }),
+
+    release: (jobId: string, note?: string) =>
+      request<{ ok: boolean; payout_pending?: boolean }>(`/jobs/${jobId}/escrow/release`, {
+        method: "POST",
+        body: JSON.stringify({ note: note ?? "" }),
+      }),
+
+    refund: (jobId: string, reason?: string) =>
+      request<{ ok: boolean }>(`/jobs/${jobId}/escrow/refund`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reason ?? "" }),
+      }),
   },
 };

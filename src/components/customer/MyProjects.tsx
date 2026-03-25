@@ -26,8 +26,11 @@ import {
   Flag,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { api, Job, JobStatus } from "@/lib/api";
+import { api, Job, JobStatus, EscrowStatusValue } from "@/lib/api";
 import { JobBids } from "@/components/customer/JobBids";
+import { EscrowPayment } from "@/components/escrow/EscrowPayment";
+import { EscrowStatusBanner } from "@/components/escrow/EscrowStatusBanner";
+import { EscrowActions } from "@/components/escrow/EscrowActions";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -95,6 +98,7 @@ interface JobDetailProps {
 function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
   const { toast } = useToast();
   const [transitioning, setTransitioning] = useState(false);
+  const [escrowStatus, setEscrowStatus] = useState<EscrowStatusValue | null>(null);
 
   const r = job.analysis_result as Record<string, unknown> | null;
   const urgency = (r?.urgency as string | undefined)?.toLowerCase();
@@ -336,6 +340,27 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
             jobStatus={job.status}
             onBidAccepted={onStatusChanged}
           />
+        </div>
+      )}
+
+      {/* Escrow section — shown after bid accepted */}
+      {(job.status === "awarded" || job.status === "in_progress" || job.status === "completed") && (
+        <div className="space-y-4 mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            Payment &amp; Escrow
+          </p>
+          <EscrowStatusBanner
+            jobId={job.id}
+            onStatusLoaded={(s) => setEscrowStatus(s)}
+          />
+          {escrowStatus === "pending" && <EscrowPayment jobId={job.id} />}
+          {escrowStatus === "held" && (
+            <EscrowActions
+              jobId={job.id}
+              escrowStatus={escrowStatus}
+              onStatusChanged={onStatusChanged}
+            />
+          )}
         </div>
       )}
     </>
