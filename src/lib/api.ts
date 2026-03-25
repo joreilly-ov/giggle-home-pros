@@ -152,6 +152,24 @@ export const api = {
   contractor: {
     embedProfile: () =>
       request<{ ok: boolean }>("/me/contractor/embed-profile", { method: "POST" }),
+
+    connectOnboard: (returnUrl: string, refreshUrl: string) =>
+      request<{ onboarding_url: string; account_id: string; expires_at: number }>(
+        "/me/contractor/connect-onboard",
+        {
+          method: "POST",
+          body: JSON.stringify({ return_url: returnUrl, refresh_url: refreshUrl }),
+        },
+      ),
+
+    connectStatus: () =>
+      request<{
+        connected: boolean;
+        charges_enabled: boolean;
+        payouts_enabled: boolean;
+        details_submitted: boolean;
+        account_id: string;
+      }>("/me/contractor/connect-status"),
   },
 
   escrow: {
