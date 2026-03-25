@@ -6,9 +6,9 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 
 ## What it does
 
-- Homeowners post projects and browse vetted contractors
-- Contractors sign up, build a profile, and bid on jobs
-- AI-powered photo and video analysis to help diagnose home repair needs
+- Homeowners record a short video of their home issue → AI analysis identifies the trade, urgency, and estimated cost → job published to contractors
+- Contractors browse open jobs, read AI summaries, and submit priced bids with a scope-of-work note
+- Homeowner reviews bids, accepts one (all others auto-rejected), then tracks work through to completion
 - Escrow-based payments with same-day payout for contractors
 - Post-job tradesman rating system (Quality · Communication · Cleanliness) gated on escrow release, with admin-only private feedback
 - **Installable on iOS and Android** — works as a Progressive Web App (PWA) from the home screen
@@ -17,11 +17,14 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 
 **Customers** (`/profile`, `/dashboard`)
 - Create an account, set location and trade interests
-- Post projects and browse contractors
+- Upload a video → get AI analysis → publish the job for bids
+- Review contractor bids (accept / decline), track job status through to completion
 
 **Contractors** (`/contractor/profile/*`)
 - Onboard via `/contractor/signup` (business info + expertise)
-- Manage active bids, profile settings, and license/insurance verification
+- Browse open jobs on the Job Feed, submit priced bids with scope-of-work notes
+- Track bid status, win rate, and pipeline value in the Active Bids dashboard
+- Manage profile settings and license/insurance verification
 
 ## Tech stack
 
@@ -58,9 +61,12 @@ npm run test       # Vitest unit tests
 ```
 src/
   pages/           # Route-level components
-  components/      # Shared + feature components
-    contractor/    # Contractor-specific UI (ActiveBids, ProfileSettings, Verification)
+  components/
+    contractor/    # JobFeed, ActiveBids, ProfileSettings, Verification
+    customer/      # MyProjects, JobBids
     ui/            # shadcn/ui primitives
+  lib/
+    api.ts         # Typed API client for Cloud Run bidding endpoints
   contexts/        # AuthContext (Supabase session)
   integrations/    # Supabase client + generated types
 supabase/
