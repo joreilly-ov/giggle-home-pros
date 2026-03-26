@@ -80,6 +80,15 @@ export interface MatchResponse {
   contractors: ContractorMatch[];
 }
 
+export interface JobQuestion {
+  id: string;
+  job_id: string;
+  question: string;
+  answer: string | null;
+  asked_by: string;
+  created_at: string;
+}
+
 export type EscrowStatusValue = "pending" | "held" | "funds_released" | "refunded";
 
 export interface EscrowStatus {
@@ -170,6 +179,22 @@ export const api = {
         details_submitted: boolean;
         account_id: string;
       }>("/me/contractor/connect-status"),
+  },
+
+  questions: {
+    list: (jobId: string) => request<JobQuestion[]>(`/jobs/${jobId}/questions`),
+
+    ask: (jobId: string, question: string) =>
+      request<JobQuestion>(`/jobs/${jobId}/questions`, {
+        method: "POST",
+        body: JSON.stringify({ question }),
+      }),
+
+    answer: (jobId: string, questionId: string, answer: string) =>
+      request<JobQuestion>(`/jobs/${jobId}/questions/${questionId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ answer }),
+      }),
   },
 
   escrow: {
