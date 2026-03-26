@@ -89,6 +89,27 @@ export interface JobQuestion {
   created_at: string;
 }
 
+export type MilestoneStatus = "pending" | "submitted" | "approved" | "rejected";
+
+export interface MilestonePhoto {
+  id: string;
+  url: string;
+  note?: string;
+  ai_analysis?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface Milestone {
+  id: string;
+  job_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  status: MilestoneStatus;
+  photos: MilestonePhoto[];
+  created_at: string;
+}
+
 export type EscrowStatusValue = "pending" | "held" | "funds_released" | "refunded";
 
 export interface EscrowStatus {
@@ -194,6 +215,40 @@ export const api = {
       request<JobQuestion>(`/jobs/${jobId}/questions/${questionId}`, {
         method: "PATCH",
         body: JSON.stringify({ answer }),
+      }),
+  },
+
+  milestones: {
+    list: (jobId: string) => request<Milestone[]>(`/jobs/${jobId}/milestones`),
+
+    create: (
+      jobId: string,
+      milestones: { title: string; description?: string; order_index: number }[]
+    ) =>
+      request<Milestone[]>(`/jobs/${jobId}/milestones`, {
+        method: "POST",
+        body: JSON.stringify({ milestones }),
+      }),
+
+    submitPhoto: (
+      jobId: string,
+      milestoneId: string,
+      imageSource: string,
+      note?: string,
+      analyse?: boolean
+    ) =>
+      request<MilestonePhoto>(
+        `/jobs/${jobId}/milestones/${milestoneId}/photos${analyse ? "?analyse=true" : ""}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ image_source: imageSource, note }),
+        }
+      ),
+
+    review: (jobId: string, milestoneId: string, action: "approve" | "reject") =>
+      request<Milestone>(`/jobs/${jobId}/milestones/${milestoneId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action }),
       }),
   },
 

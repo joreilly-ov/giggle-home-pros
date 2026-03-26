@@ -11,8 +11,11 @@ import {
   Circle,
   PoundSterling,
   RefreshCw,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { api, Bid } from "@/lib/api";
+import { MilestonesCard } from "@/components/milestones/MilestonesCard";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,6 +57,7 @@ export function ActiveBids() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedBid, setExpandedBid] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -191,47 +195,71 @@ export function ActiveBids() {
                 return (
                   <div
                     key={bid.id}
-                    className="flex items-start justify-between px-6 py-4 hover:bg-secondary/40 transition-colors"
+                    className="group"
                   >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0 mt-0.5">
-                        <Gavel className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {bidJobTitle(bid)}
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          {bid.note && (
-                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                              {bid.note}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            {new Date(bid.created_at).toLocaleDateString(
-                              "en-GB",
-                              { day: "numeric", month: "short" }
+                    <div
+                      className="flex items-start justify-between px-6 py-4 hover:bg-secondary/40 transition-colors cursor-pointer"
+                      onClick={() =>
+                        bid.status === "accepted"
+                          ? setExpandedBid(expandedBid === bid.id ? null : bid.id)
+                          : undefined
+                      }
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        {bid.status === "accepted" ? (
+                          expandedBid === bid.id ? (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+                          )
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0 mt-0.5">
+                            <Gavel className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {bidJobTitle(bid)}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            {bid.note && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                {bid.note}
+                              </span>
                             )}
-                          </span>
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              {new Date(bid.created_at).toLocaleDateString(
+                                "en-GB",
+                                { day: "numeric", month: "short" }
+                              )}
+                            </span>
+                          </div>
                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 ml-4">
+                        <span className="text-sm font-bold text-foreground">
+                          {pounds}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
+                        >
+                          <Circle
+                            className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`}
+                          />
+                          {cfg.label}
+                        </Badge>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0 ml-4">
-                      <span className="text-sm font-bold text-foreground">
-                        {pounds}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
-                      >
-                        <Circle
-                          className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`}
-                        />
-                        {cfg.label}
-                      </Badge>
-                    </div>
+                    {/* Expanded milestones for accepted bids */}
+                    {bid.status === "accepted" && expandedBid === bid.id && (
+                      <div className="px-6 pb-4">
+                        <MilestonesCard jobId={bid.job_id} role="contractor" />
+                      </div>
+                    )}
                   </div>
                 );
               })}
