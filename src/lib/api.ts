@@ -89,6 +89,27 @@ export interface JobQuestion {
   created_at: string;
 }
 
+export type MilestoneStatus = "pending" | "submitted" | "approved" | "rejected";
+
+export interface MilestonePhoto {
+  id: string;
+  url: string;
+  note?: string;
+  ai_analysis?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface Milestone {
+  id: string;
+  job_id: string;
+  title: string;
+  description?: string;
+  order_index: number;
+  status: MilestoneStatus;
+  photos: MilestonePhoto[];
+  created_at: string;
+}
+
 export type EscrowStatusValue = "pending" | "held" | "funds_released" | "refunded";
 
 export interface EscrowStatus {
