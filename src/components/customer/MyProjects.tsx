@@ -31,6 +31,7 @@ import { JobBids } from "@/components/customer/JobBids";
 import { EscrowPayment } from "@/components/escrow/EscrowPayment";
 import { EscrowStatusBanner } from "@/components/escrow/EscrowStatusBanner";
 import { EscrowActions } from "@/components/escrow/EscrowActions";
+import { JobQuestions } from "@/components/questions/JobQuestions";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -340,6 +341,13 @@ function JobDetail({ job, onStatusChanged, onClose }: JobDetailProps) {
             jobStatus={job.status}
             onBidAccepted={onStatusChanged}
           />
+        </div>
+      )}
+
+      {/* Q&A section */}
+      {(job.status === "open" || job.status === "awarded" || job.status === "in_progress") && (
+        <div className="mt-6">
+          <JobQuestions jobId={job.id} role="homeowner" />
         </div>
       )}
 

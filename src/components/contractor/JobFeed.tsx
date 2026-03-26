@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { JobQuestions } from "@/components/questions/JobQuestions";
 import { useToast } from "@/hooks/use-toast";
 
 type PostedJob = {
@@ -300,6 +301,9 @@ export function JobFeed() {
                 <p className="text-xs text-muted-foreground">
                   Posted {formatDistanceToNow(new Date(selectedJob.created_at), { addSuffix: true })}
                 </p>
+
+                {/* Q&A section */}
+                <JobQuestions jobId={selectedJob.id} role="contractor" />
 
                 {/* Bid form */}
                 <div className="border-t border-border pt-4 mt-2">
