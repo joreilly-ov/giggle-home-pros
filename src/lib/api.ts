@@ -218,6 +218,40 @@ export const api = {
       }),
   },
 
+  milestones: {
+    list: (jobId: string) => request<Milestone[]>(`/jobs/${jobId}/milestones`),
+
+    create: (
+      jobId: string,
+      milestones: { title: string; description?: string; order_index: number }[]
+    ) =>
+      request<Milestone[]>(`/jobs/${jobId}/milestones`, {
+        method: "POST",
+        body: JSON.stringify({ milestones }),
+      }),
+
+    submitPhoto: (
+      jobId: string,
+      milestoneId: string,
+      imageSource: string,
+      note?: string,
+      analyse?: boolean
+    ) =>
+      request<MilestonePhoto>(
+        `/jobs/${jobId}/milestones/${milestoneId}/photos${analyse ? "?analyse=true" : ""}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ image_source: imageSource, note }),
+        }
+      ),
+
+    review: (jobId: string, milestoneId: string, action: "approve" | "reject") =>
+      request<Milestone>(`/jobs/${jobId}/milestones/${milestoneId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action }),
+      }),
+  },
+
   notifications: {
     vapidKey: () =>
       request<{ vapid_public_key: string }>("/notifications/vapid-public-key"),
