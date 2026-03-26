@@ -197,6 +197,23 @@ export const api = {
       }),
   },
 
+  notifications: {
+    vapidKey: () =>
+      request<{ vapid_public_key: string }>("/notifications/vapid-public-key"),
+
+    subscribe: (endpoint: string, p256dh: string, auth_key: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify({ endpoint, p256dh, auth_key }),
+      }),
+
+    unsubscribe: (endpoint: string, p256dh: string, auth_key: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "DELETE",
+        body: JSON.stringify({ endpoint, p256dh, auth_key }),
+      }),
+  },
+
   escrow: {
     config: () => request<{ stripe_publishable_key: string }>("/escrow/config"),
 

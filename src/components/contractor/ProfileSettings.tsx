@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { ContractorPayoutCard } from "@/components/escrow/ContractorPayoutCard";
+import { NotificationSettings } from "@/components/contractor/NotificationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -227,6 +228,9 @@ export function ProfileSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Notifications ── */}
+      <NotificationSettings />
 
       {/* ── Payout card ── */}
       <ContractorPayoutCard />
