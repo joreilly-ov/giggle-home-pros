@@ -397,8 +397,15 @@ export function MyProjects() {
     setError(null);
     try {
       const data = await api.jobs.list();
+      // API may return a non-array on auth error (e.g. { error: "..." })
+      if (!Array.isArray(data)) {
+        console.error("[MyProjects] Unexpected response from /jobs:", data);
+        setError((data as any)?.error ?? "Unexpected response from server");
+        return;
+      }
       setJobs(data);
     } catch (e) {
+      console.error("[MyProjects] Failed to load projects:", e);
       setError(e instanceof Error ? e.message : "Failed to load projects");
     } finally {
       setLoading(false);
