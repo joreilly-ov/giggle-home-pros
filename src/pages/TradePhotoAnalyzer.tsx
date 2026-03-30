@@ -34,6 +34,12 @@ const TradePhotoAnalyzer = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
   const addPhotos = (files: FileList | File[]) => {
     const incoming = Array.from(files);
     const remaining = MAX_PHOTOS - photos.length;
