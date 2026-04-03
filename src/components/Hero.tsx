@@ -45,7 +45,7 @@ const Hero = () => {
         decoding="async"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-foreground/50" />
+      <div className="absolute inset-0 bg-foreground/40" />
 
       <div className="relative z-10 text-center px-4 w-full max-w-3xl mx-auto animate-fade-up">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground mb-4 leading-tight tracking-tight">
