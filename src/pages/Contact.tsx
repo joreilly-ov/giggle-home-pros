@@ -11,7 +11,7 @@ const Contact = () => (
       <div className="space-y-6">
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-bold font-heading text-foreground mb-1">Email</h2>
-          <p className="text-muted-foreground">support@stablegig.com</p>
+          <p className="text-muted-foreground">support@kisx.com</p>
         </div>
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-bold font-heading text-foreground mb-1">Phone</h2>

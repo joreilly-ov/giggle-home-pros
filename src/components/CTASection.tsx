@@ -8,7 +8,7 @@ const CTASection = () => {
           Ready to start your project?
         </h2>
         <p className="text-primary-foreground/80 text-lg mb-8 max-w-xl mx-auto">
-          Join thousands of homeowners who've found trusted contractors through StableGig.
+          Join thousands of homeowners who've found trusted contractors through KisX.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button variant="hero" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 h-12 px-8">

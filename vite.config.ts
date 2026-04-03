@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "Giggle Home Pros",
-        short_name: "Giggle",
-        description: "Find trusted local contractors for your home projects",
+        name: "KisX - Home Services Marketplace",
+        short_name: "KisX",
+        description: "KisX connects homeowners with trusted local contractors",
         theme_color: "#0891b2",
         background_color: "#ffffff",
         display: "standalone",

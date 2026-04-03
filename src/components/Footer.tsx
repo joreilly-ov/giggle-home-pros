@@ -5,7 +5,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <h3 className="text-xl font-extrabold font-heading text-primary-foreground mb-3">
-              Stable<span className="text-primary">Gig</span>
+              Kis<span className="text-primary">X</span>
             </h3>
             <p className="text-sm leading-relaxed">
               Connecting homeowners with trusted contractors through video, AI, and secure payments.
@@ -37,7 +37,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs">
-          © {new Date().getFullYear()} StableGig. All rights reserved.
+          © {new Date().getFullYear()} KisX. All rights reserved.
         </div>
       </div>
     </footer>
