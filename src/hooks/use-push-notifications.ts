@@ -7,7 +7,25 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(buffer)));
 }
 
-type PushState = "prompt" | "granted" | "denied" | "unsupported";
+/** True when running on iOS (iPhone/iPad) */
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+}
+
+/** True when running as an installed PWA (standalone mode) */
+function isStandalone(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as any).standalone === true
+  );
+}
+
+export type PushState =
+  | "prompt"
+  | "granted"
+  | "denied"
+  | "unsupported"
+  | "ios-not-installed"; // iOS Safari requires PWA install before push works
 
 export function usePushNotifications() {
   const [enabled, setEnabled] = useState(false);
@@ -15,6 +33,11 @@ export function usePushNotifications() {
   const [permissionState, setPermissionState] = useState<PushState>("prompt");
 
   useEffect(() => {
+    // iOS without PWA install: PushManager may be present but push won't work
+    if (isIOS() && !isStandalone()) {
+      setPermissionState("ios-not-installed");
+      return;
+    }
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setPermissionState("unsupported");
       return;

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2, MapPin, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { NotificationSettings } from "@/components/contractor/NotificationSettings";
 
 const INTEREST_OPTIONS = [
   { label: "Plumbing", icon: "🔧" },
@@ -244,6 +245,11 @@ const Profile = () => {
             ))}
           </div>
         </section>
+
+        {/* Notifications */}
+        <div className="mb-8">
+          <NotificationSettings role="homeowner" />
+        </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full gap-2">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
