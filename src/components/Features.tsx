@@ -28,7 +28,7 @@ const Features = () => {
     <section className="py-20 px-4 bg-secondary">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-foreground mb-4">
-          Why homeowners love StableGig
+          Why homeowners love KisX
         </h2>
         <p className="text-center text-muted-foreground mb-14 max-w-xl mx-auto">
           Built to make hiring contractors stress-free and transparent.

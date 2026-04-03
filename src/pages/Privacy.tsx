@@ -31,7 +31,7 @@ const Privacy = () => (
         </section>
         <section className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-xl font-bold font-heading text-foreground mb-2">6. Contact</h2>
-          <p>If you have questions about this policy, contact us at support@stablegig.com or 123 Trade Street, Suite 400, San Francisco, CA 94123.</p>
+          <p>If you have questions about this policy, contact us at support@kisx.com or 123 Trade Street, Suite 400, San Francisco, CA 94123.</p>
         </section>
       </div>
     </main>
