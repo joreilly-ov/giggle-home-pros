@@ -7,8 +7,8 @@ self.addEventListener("push", (event) => {
     event.waitUntil(
       self.registration.showNotification(title || "New job alert", {
         body: body || "",
-        icon: "/icons/icon-192x192.png",
-        badge: "/icons/icon-72x72.png",
+        icon: "/pwa-icon-192.png",
+        badge: "/pwa-icon-192.png",
         data: { url: url || "/" },
       })
     );
