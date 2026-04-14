@@ -11,6 +11,7 @@ const features = [
     icon: Zap,
     title: "AI-Powered Bidding",
     description: "Contractors use smart tools to analyze your project and deliver precise estimates — faster than ever.",
+    link: "/ai-bidding-tools",
   },
   {
     icon: Shield,
