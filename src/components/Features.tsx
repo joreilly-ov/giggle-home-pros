@@ -1,4 +1,5 @@
 import { Video, Shield, Zap, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const features = [
   {
@@ -15,6 +16,7 @@ const features = [
     icon: Shield,
     title: "Escrow Protection",
     description: "Your money stays safe until you confirm the work meets your standards. Full transparency, zero risk.",
+    link: "/same-day-payments",
   },
   {
     icon: Star,
@@ -45,6 +47,11 @@ const Features = () => {
               </div>
               <h3 className="text-xl font-bold font-heading text-foreground mb-2">{feature.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+              {feature.link && (
+                <Link to={feature.link} className="text-sm font-semibold text-primary hover:underline mt-3 inline-block">
+                  Learn more →
+                </Link>
+              )}
             </div>
           ))}
         </div>
