@@ -8,14 +8,26 @@ interface SplashScreenProps {
 const SplashScreen = ({ onDone }: SplashScreenProps) => {
   const [fading, setFading] = useState(false);
 
+  // Only show splash in standalone/PWA mode — skip in regular browser to improve Speed Index
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true);
+
   useEffect(() => {
+    if (!isStandalone) {
+      onDone();
+      return;
+    }
     const fadeTimer = setTimeout(() => setFading(true), 1800);
     const doneTimer = setTimeout(() => onDone(), 2300);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(doneTimer);
     };
-  }, [onDone]);
+  }, [onDone, isStandalone]);
+
+  if (!isStandalone) return null;
 
   return (
     <div
