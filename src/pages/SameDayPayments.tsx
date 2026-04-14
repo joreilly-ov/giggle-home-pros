@@ -147,7 +147,7 @@ const SameDayPayments = () => (
           <Button asChild size="lg" className="h-12 px-8">
             <Link to="/contractor/signup">Join as a Contractor</Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="h-12 px-8 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+          <Button asChild variant="outline" size="lg" className="h-12 px-8 border-primary-foreground/60 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20">
             <Link to="/post-project">Post a Project</Link>
           </Button>
         </div>
