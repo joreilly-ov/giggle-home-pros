@@ -94,6 +94,23 @@ export function ActiveBids() {
     maximumFractionDigits: 0,
   });
 
+  const handleWithdraw = async (bid: Bid) => {
+    setWithdrawingId(bid.id);
+    try {
+      await api.bids.withdraw(bid.job_id, bid.id);
+      toast({ title: "Bid withdrawn." });
+      await load();
+    } catch (e) {
+      toast({
+        title: "Failed to withdraw bid",
+        description: e instanceof Error ? e.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* KPI row */}
