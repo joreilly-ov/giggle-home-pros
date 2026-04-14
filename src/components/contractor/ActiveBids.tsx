@@ -13,8 +13,10 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { api, Bid } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { MilestonesCard } from "@/components/milestones/MilestonesCard";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
