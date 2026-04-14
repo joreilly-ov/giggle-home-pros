@@ -1,4 +1,4 @@
-package com.gigglehomepros.app;
+package com.kisx.app;
 
 import com.getcapacitor.BridgeActivity;
 
