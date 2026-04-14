@@ -1,3 +1,5 @@
+import { version } from "../../package.json";
+
 const Footer = () => {
   return (
     <footer className="py-12 px-4 bg-foreground text-primary-foreground/70">
@@ -36,8 +38,9 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs">
-          © {new Date().getFullYear()} KisX. All rights reserved.
+        <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs flex flex-col gap-1">
+          <span>© {new Date().getFullYear()} KisX. All rights reserved.</span>
+          <span className="text-primary-foreground/30">v{version}</span>
         </div>
       </div>
     </footer>
