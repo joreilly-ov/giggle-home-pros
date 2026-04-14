@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <h3 className="text-xl font-extrabold font-heading text-primary-foreground mb-3">
-              Kis<span className="text-primary">X</span>
+              Kis<span className="text-accent">X</span>
             </h3>
             <p className="text-sm leading-relaxed">
               Connecting homeowners with trusted contractors through video, AI, and secure payments.
