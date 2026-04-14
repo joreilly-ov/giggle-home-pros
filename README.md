@@ -2,7 +2,7 @@
 
 A marketplace connecting homeowners with trusted contractors for home repair and improvement projects.
 
-**Live app:** https://kisx.lovable.app
+**Live app:** <https://kisx.lovable.app>
 
 ## What it does
 
@@ -16,11 +16,13 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 ## User roles
 
 **Customers** (`/profile`, `/dashboard`)
+
 - Create an account, set location and trade interests
 - Upload a video → get AI analysis → publish the job for bids
 - Review contractor bids (accept / decline), track job status through to completion
 
 **Contractors** (`/contractor/profile/*`)
+
 - Onboard via `/contractor/signup` (business info + expertise)
 - Browse open jobs on the Job Feed, submit priced bids with scope-of-work notes
 - Track bid status, win rate, and pipeline value in the Active Bids dashboard
@@ -34,7 +36,7 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 - **AI analysis:** Cloud Run endpoint (KisX backend) — called directly from the browser for video, via edge function proxy for photos
 - **Routing:** React Router v6
 - **State:** TanStack Query
-- **PWA:** Web app manifest and service worker managed by Lovable's deployment platform — installable on iOS/Android
+- **PWA:** Configured in this repo with `vite-plugin-pwa` (`vite.config.ts`) and `public/push-sw.js`; deployed via Lovable
 
 ## Local development
 
@@ -53,12 +55,13 @@ Requires Node.js 18+. The app connects to a hosted Supabase instance — no loca
 npm run dev        # Start dev server
 npm run build      # Production build
 npm run lint       # ESLint
+npm run typecheck:strict:lib  # Incremental strict TS check for src/lib
 npm run test       # Vitest unit tests
 ```
 
 ## Project structure
 
-```
+```text
 src/
   pages/           # Route-level components
   components/
@@ -73,15 +76,21 @@ supabase/
   migrations/      # Database schema migrations
 ```
 
+## Current architecture note
+
+- Cloud Run `jobs` APIs are the source of truth for bidding and status transitions.
+- The frontend still writes/reads some legacy `videos` rows for analysis history and compatibility paths.
+- Ongoing refactor target: remove remaining `videos` dependencies from contractor/job flows.
+
 ## Database tables
 
 | Table / View | Purpose |
-|-------------|---------|
+| ----------- | ------- |
 | `profiles` | Customer profiles (name, address, interests) |
 | `contractors` | Contractor profiles (business name, expertise, license) |
 | `user_metadata` | Shared user metadata (username, bio) |
 | `trades` | Trade/business registry |
-| `videos` | Video analysis records |
+| `videos` | Legacy analysis/posting records retained for compatibility; not the primary source for bidding lifecycle |
 | `reviews` | Post-job ratings — quality, communication, cleanliness, generated overall score, optional public comment, and `private_feedback` (admin-only) |
 | `visible_reviews` | View of `reviews` with `private_feedback` excluded — safe to expose to authenticated users |
 
@@ -122,4 +131,4 @@ The `ReviewMediator` component (`src/components/ReviewMediator.tsx`) handles the
 
 Deployed via [Lovable](https://lovable.dev). Push to `main` and Lovable auto-deploys.
 
-The PWA manifest and service worker are injected by Lovable at build time — there are no local `manifest.json` or SW files to maintain. To update PWA metadata (app name, icons, theme colour), use the Lovable project settings.
+PWA behavior is configured in `vite.config.ts` via `vite-plugin-pwa`, and web push notifications use `public/push-sw.js`. Lovable still handles deployment and hosting.

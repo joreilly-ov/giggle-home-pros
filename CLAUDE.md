@@ -10,7 +10,7 @@
 - **React Router v6** for routing — all routes defined in `src/App.tsx`
 - **Supabase** for auth, database, and edge functions — client at `src/integrations/supabase/client.ts`, types at `src/integrations/supabase/types.ts`
 - **AuthContext** (`src/contexts/AuthContext.tsx`) exposes `user`, `session`, `loading`, `signOut`
-- **PWA** — the app is installable on iOS and Android home screens. The web app manifest and service worker are managed by Lovable's deployment platform, not stored as files in this repo. No `vite-plugin-pwa` or local `manifest.json` to maintain here.
+- **PWA** — the app is installable on iOS and Android home screens. PWA config is present in this repo via `vite-plugin-pwa` in `vite.config.ts`, and push notifications use `public/push-sw.js`. Lovable manages deployment/hosting.
 
 ### Mobile / PWA considerations
 
@@ -60,6 +60,7 @@ Always check contractor first (see `Auth.tsx` redirect logic).
 - Contractor sub-routes use React Router nested routing with `useRoutes` or `<Routes>` inside `ContractorProfile.tsx`
 - Customer onboarding sets `setup_complete` in the `user_metadata` table via Supabase
 - Password reset: Supabase appends `#access_token=...&type=recovery` to the redirect URL; `ResetPassword.tsx` listens for the `PASSWORD_RECOVERY` auth event and calls `supabase.auth.updateUser({ password })`
+- Jobs/bids lifecycle is centered on the Cloud Run jobs API (`src/lib/api.ts`), while some legacy compatibility paths still read/write `videos`
 
 ## Bidding API (Cloud Run)
 

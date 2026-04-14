@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "typecheck:strict:lib": "tsc -p tsconfig.strict-lib.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "android:dev": "npm run dev -- --host",
