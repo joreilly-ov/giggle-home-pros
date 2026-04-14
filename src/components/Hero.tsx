@@ -41,6 +41,9 @@ const Hero = () => {
       <img
         src={heroBg}
         alt=""
+        width={1920}
+        height={864}
+        sizes="100vw"
         fetchPriority="high"
         decoding="async"
         className="absolute inset-0 w-full h-full object-cover"
