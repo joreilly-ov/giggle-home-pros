@@ -56,10 +56,12 @@ const STATUS_CONFIG: Record<
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ActiveBids() {
+  const { toast } = useToast();
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedBid, setExpandedBid] = useState<string | null>(null);
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
