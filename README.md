@@ -1,25 +1,27 @@
 # KisX - Home Services Marketplace
 
-A marketplace connecting homeowners with trusted contractors for home repair and improvement projects.
+**Version: 1.0.2** | **Live app:** https://kisx.lovable.app
 
+A marketplace connecting homeowners with trusted contractors for home repair and improvement projects.
 **Live app:** <https://kisx.lovable.app>
 
 ## What it does
 
 - Homeowners record a short video of their home issue → AI analysis identifies the trade, urgency, and estimated cost → job published to contractors
-- Contractors browse open jobs, read AI summaries, and submit priced bids with a scope-of-work note
-- Homeowner reviews bids, accepts one (all others auto-rejected), then tracks work through to completion
-- Escrow-based payments with same-day payout for contractors
+- Contractors browse open jobs, read AI summaries (urgency, materials, location), generate task breakdowns, ask clarifying questions, and submit priced bids
+- Homeowner reviews bids, accepts one (all others auto-rejected), tracks work through milestones to completion
+- Escrow-based payments powered by Stripe Connect — funds held until homeowner approves, contractor paid same day
 - Post-job tradesman rating system (Quality · Communication · Cleanliness) gated on escrow release, with admin-only private feedback
-- **Installable on iOS and Android** — works as a Progressive Web App (PWA) from the home screen
+- Push notifications via Web Push API — contractors alerted to new jobs, homeowners alerted to incoming bids
+- **Installable as a native app** — Android via Capacitor (Play Store ready), iOS Capacitor in progress; also installable as a PWA from any browser
 
 ## User roles
 
 **Customers** (`/profile`, `/dashboard`)
 
 - Create an account, set location and trade interests
-- Upload a video → get AI analysis → publish the job for bids
-- Review contractor bids (accept / decline), track job status through to completion
+- Record a video → AI analysis → clarification Q&A → RFP document → matched contractors → publish for bids
+- Review contractor bids (accept / decline), fund escrow, track milestones, release payment on completion
 
 **Contractors** (`/contractor/profile/*`)
 
@@ -43,37 +45,54 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 ```sh
 git clone <repo-url>
 cd KisX
-npm install
-npm run dev
+npm install        # or: bun install
+npm run dev        # http://localhost:8080
 ```
 
-Requires Node.js 18+. The app connects to a hosted Supabase instance — no local Supabase setup needed for frontend work.
+Requires Node.js 18+. Connects to a hosted Supabase instance — no local Supabase setup needed for frontend work.
 
 ## Key scripts
 
 ```sh
-npm run dev        # Start dev server
-npm run build      # Production build
-npm run lint       # ESLint
-npm run typecheck:strict:lib  # Incremental strict TS check for src/lib
+npm run dev        # Start dev server (http://localhost:8080)
+npm run build      # Production build → dist/
 npm run test       # Vitest unit tests
+npm run lint       # ESLint
+```
+
+**Capacitor (native app):**
+```sh
+npm run build
+npx cap sync android   # Sync dist/ into Android project
+npx cap open android   # Open in Android Studio
+npx cap open ios       # Open ios/App/App.xcworkspace in Xcode (Mac only)
 ```
 
 ## Project structure
 
 ```text
 src/
-  pages/           # Route-level components
+  pages/                   # Route-level components
   components/
-    contractor/    # JobFeed, ActiveBids, ProfileSettings, Verification
-    customer/      # MyProjects, JobBids
-    ui/            # shadcn/ui primitives
+    contractor/            # JobFeed, ActiveBids, ProfileSettings, Verification, NotificationSettings
+    customer/              # MyProjects, JobBids
+    escrow/                # EscrowStatusBanner, EscrowPayment, EscrowActions, ContractorPayoutCard
+    milestones/            # MilestonesCard (photo upload, AI analysis, approve/reject)
+    questions/             # JobQuestions (contractor asks / homeowner answers)
+    post-project/          # ClarificationsStep, RfpReviewStep, MatchedContractorsStep
+    photo-analyzer/        # AnalysisResults, PhotoGrid, TaskBreakdown
+    ui/                    # shadcn/ui primitives
   lib/
-    api.ts         # Typed API client for Cloud Run bidding endpoints
-  contexts/        # AuthContext (Supabase session)
-  integrations/    # Supabase client + generated types
+    api.ts                 # Typed API client for all Cloud Run endpoints
+  hooks/
+    use-push-notifications.ts  # Web Push VAPID subscription lifecycle
+  contexts/                # AuthContext (Supabase session)
+  integrations/            # Supabase client + generated types
+  test/                    # Vitest test files
+android/                   # Capacitor Android project
 supabase/
-  migrations/      # Database schema migrations
+  migrations/              # Database schema migrations
+  functions/               # Edge function source (zip-lookup, analyse-*)
 ```
 
 ## Current architecture note
@@ -85,50 +104,42 @@ supabase/
 ## Database tables
 
 | Table / View | Purpose |
-| ----------- | ------- |
-| `profiles` | Customer profiles (name, address, interests) |
-| `contractors` | Contractor profiles (business name, expertise, license) |
-| `user_metadata` | Shared user metadata (username, bio) |
-| `trades` | Trade/business registry |
-| `videos` | Legacy analysis/posting records retained for compatibility; not the primary source for bidding lifecycle |
-| `reviews` | Post-job ratings — quality, communication, cleanliness, generated overall score, optional public comment, and `private_feedback` (admin-only) |
+|-------------|---------|
+| `profiles` | Customer profiles (`id` FK → auth.users, email, interests) |
+| `contractors` | Contractor profiles (`user_id` FK → auth.users, business name, expertise, license, insurance) |
+| `user_metadata` | Shared user metadata (username, bio, setup_complete) |
+| `reviews` | Post-job ratings — quality, communication, cleanliness, generated overall, public comment, `private_feedback` (admin-only) |
 | `visible_reviews` | View of `reviews` with `private_feedback` excluded — safe to expose to authenticated users |
+
+## Testing
+
+33 tests across 3 files. Run with `npm run test`.
+
+| Suite | Coverage |
+|-------|---------|
+| `api.test.ts` | Auth headers, URL construction, error handling, HTTP methods, request body serialisation |
+| `ReviewMediator.test.tsx` | Escrow gate (all 5 locked states + 2 unlock values), validation, field presence, live score |
+| `auth-routing.test.tsx` | Post-login redirects, `?next=` param, open-redirect guard |
 
 ## Review system
 
 The `ReviewMediator` component (`src/components/ReviewMediator.tsx`) handles the full review lifecycle:
 
-- **Form mode** — 5-step locked → form → submitting → success flow.
-  The submit button (and aria state) are disabled unless `escrowStatus` is `'released'` or `'funds_released'`.
-  Sub-ratings: **Quality**, **Communication**, **Cleanliness** (dot buttons 1–5 with animated colour-coded progress bars).
-  Overall score is computed live as `ROUND((q+c+cl)/3, 2)` — matches the DB `GENERATED` column.
-  **Private Feedback** field (amber dashed border, 🔐 Admin only badge) is sent to the `reviews` table but never returned by `visible_reviews`.
+- **Form mode** — locked until `escrowStatus` is `'released'` or `'funds_released'`.
+  Sub-ratings: **Quality**, **Communication**, **Cleanliness** (dot buttons 1–5 with animated colour-coded bars).
+  Overall score computed live as `ROUND((q+c+cl)/3, 2)` — matches the DB `GENERATED` column.
+  **Private Feedback** field (🔐 Admin only) stored in `reviews` but never returned by `visible_reviews`.
 
-- **List mode** — aggregate hero score + animated summary bars + individual review cards with per-category chips.
+- **List mode** — aggregate hero score + animated summary bars + individual review cards.
 
 - **Both mode** — tab switcher between form and list.
 
-```tsx
-<ReviewMediator
-  contractorId="<uuid>"
-  jobId="<uuid>"
-  escrowStatus={job.escrow_status}   // unlocks at 'released' | 'funds_released'
-  mode="both"
-  onSuccess={(r) => console.log(r)}
-/>
-```
-
-### Schema (migration 007)
-
-`supabase/migrations/20260318000000_007_quality_rating_private_feedback.sql`
-
-- Renames `rating_accuracy` → `rating_quality`; adds `rating_cleanliness`
-- Rebuilds `GENERATED overall` from the three sub-ratings
-- Adds `private_feedback TEXT` to `reviews`
-- Creates `visible_reviews` view (excludes `private_feedback`; `SELECT` granted to `authenticated`)
-
 ## Deployment
 
-Deployed via [Lovable](https://lovable.dev). Push to `main` and Lovable auto-deploys.
+Deployed via [Lovable](https://lovable.dev). Push to `main` triggers auto-deploy.
 
+PWA manifest and service worker are injected by Lovable at build time — no local files to maintain.
+
+**Android release:** build the Capacitor project in Android Studio → sign APK → upload to Play Store.
+Before release: remove `server.url` from `capacitor.config.ts`, update `appId` to KisX package name, and update `strings.xml`.
 PWA behavior is configured in `vite.config.ts` via `vite-plugin-pwa`, and web push notifications use `public/push-sw.js`. Lovable still handles deployment and hosting.
