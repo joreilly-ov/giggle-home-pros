@@ -13,8 +13,10 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { api, Bid } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { MilestonesCard } from "@/components/milestones/MilestonesCard";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -54,10 +56,12 @@ const STATUS_CONFIG: Record<
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ActiveBids() {
+  const { toast } = useToast();
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedBid, setExpandedBid] = useState<string | null>(null);
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,6 +93,23 @@ export function ActiveBids() {
     currency: "GBP",
     maximumFractionDigits: 0,
   });
+
+  const handleWithdraw = async (bid: Bid) => {
+    setWithdrawingId(bid.id);
+    try {
+      await api.bids.withdraw(bid.job_id, bid.id);
+      toast({ title: "Bid withdrawn." });
+      await load();
+    } catch (e) {
+      toast({
+        title: "Failed to withdraw bid",
+        description: e instanceof Error ? e.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -238,7 +259,26 @@ export function ActiveBids() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 shrink-0 ml-4">
+                      <div className="flex items-center gap-2 shrink-0 ml-4">
+                        {bid.status === "pending" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/5 h-7 text-xs"
+                            disabled={withdrawingId === bid.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWithdraw(bid);
+                            }}
+                          >
+                            {withdrawingId === bid.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                            Withdraw
+                          </Button>
+                        )}
                         <span className="text-sm font-bold text-foreground">
                           {pounds}
                         </span>

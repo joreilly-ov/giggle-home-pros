@@ -35,7 +35,7 @@ const Navbar = ({ variant = "transparent" }: NavbarProps) => {
     <nav className={`${isSolid ? "bg-foreground" : "absolute top-0 left-0 right-0"} z-20 px-4`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
         <a href="/" className="text-2xl font-extrabold font-heading text-primary-foreground tracking-tight">
-          Kis<span className="text-primary">X</span>
+          Kis<span className="text-accent">X</span>
         </a>
 
         {/* Desktop links */}

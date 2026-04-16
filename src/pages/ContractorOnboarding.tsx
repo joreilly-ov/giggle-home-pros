@@ -142,7 +142,7 @@ const ContractorOnboarding = () => {
       <div className="w-full max-w-xl">
         <div className="text-center mb-8">
           <a href="/" className="text-3xl font-extrabold font-heading text-foreground tracking-tight">
-            Kis<span className="text-primary">X</span>
+            Kis<span className="text-accent">X</span>
           </a>
           <div className="flex items-center gap-2 justify-center mt-3">
             <Wrench className="w-4 h-4 text-primary" />

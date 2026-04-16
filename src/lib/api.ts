@@ -165,6 +165,11 @@ export const api = {
       }),
 
     mine: () => request<Bid[]>("/me/bids"),
+
+    withdraw: (jobId: string, bidId: string) =>
+      request<{ ok: boolean }>(`/jobs/${jobId}/bids/${bidId}`, {
+        method: "DELETE",
+      }),
   },
 
   rfp: {

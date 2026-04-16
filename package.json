@@ -9,8 +9,11 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "typecheck:strict:lib": "tsc -p tsconfig.strict-lib.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "android:dev": "npm run dev -- --host",
+    "android:run": "npx cap run android"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",

@@ -10,9 +10,7 @@
 - **React Router v6** for routing — all routes defined in `src/App.tsx`
 - **Supabase** for auth, database, and edge functions — client at `src/integrations/supabase/client.ts`, types at `src/integrations/supabase/types.ts`
 - **AuthContext** (`src/contexts/AuthContext.tsx`) exposes `user`, `session`, `loading`, `signOut`
-- **PWA** — installable via browser "Add to Home Screen". Manifest and service worker managed by Lovable's deployment platform (no local `manifest.json` to maintain).
-- **Capacitor** — native Android app scaffolded at `android/`. iOS not yet set up. Config at `capacitor.config.ts`.
-- **App version** — single source of truth is `"version"` in `package.json`. Both `SplashScreen.tsx` and `Footer.tsx` import it directly — bump `package.json` and both update. Current: `1.0.2`.
+- **PWA** — the app is installable on iOS and Android home screens. PWA config is present in this repo via `vite-plugin-pwa` in `vite.config.ts`, and push notifications use `public/push-sw.js`. Lovable manages deployment/hosting.
 
 ### Mobile / PWA / Capacitor considerations
 
@@ -72,7 +70,7 @@ Always check contractor first (see `Auth.tsx` redirect logic).
 - Contractor sub-routes use React Router `<Routes>` inside `ContractorProfile.tsx`
 - Customer onboarding sets `setup_complete` in the `user_metadata` table via Supabase
 - Password reset: Supabase appends `#access_token=...&type=recovery` to the redirect URL; `ResetPassword.tsx` listens for the `PASSWORD_RECOVERY` auth event and calls `supabase.auth.updateUser({ password })`
-- **SplashScreen** (`src/components/SplashScreen.tsx`) — shown on every app launch for 1.8s, fades out over 0.5s. Mounted in `App.tsx` before the router renders. Shows version from `package.json`.
+- Jobs/bids lifecycle is centered on the Cloud Run jobs API (`src/lib/api.ts`), while some legacy compatibility paths still read/write `videos`
 
 ## Bidding API (Cloud Run)
 

@@ -41,6 +41,9 @@ const Hero = () => {
       <img
         src={heroBg}
         alt=""
+        width={1920}
+        height={864}
+        sizes="100vw"
         fetchPriority="high"
         decoding="async"
         className="absolute inset-0 w-full h-full object-cover"
@@ -51,7 +54,7 @@ const Hero = () => {
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground mb-4 leading-tight tracking-tight">
           Your home project,
           <br />
-          <span className="text-primary">done right.</span>
+          <span className="text-accent">done right.</span>
         </h1>
         <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-xl mx-auto font-body">
           Describe your project on video. Get bids from trusted contractors.

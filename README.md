@@ -3,6 +3,7 @@
 **Version: 1.0.2** | **Live app:** https://kisx.lovable.app
 
 A marketplace connecting homeowners with trusted contractors for home repair and improvement projects.
+**Live app:** <https://kisx.lovable.app>
 
 ## What it does
 
@@ -17,30 +18,27 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 ## User roles
 
 **Customers** (`/profile`, `/dashboard`)
+
 - Create an account, set location and trade interests
 - Record a video → AI analysis → clarification Q&A → RFP document → matched contractors → publish for bids
 - Review contractor bids (accept / decline), fund escrow, track milestones, release payment on completion
 
 **Contractors** (`/contractor/profile/*`)
-- Onboard via `/contractor/signup` (business info + expertise + Stripe Connect bank setup)
-- Browse open jobs on the Job Feed — ranked by expertise match, AI-diagnosed before arrival
-- Use AI task breakdown to plan scope, ask homeowner questions, submit priced bids
-- Track bid status, win rate, and pipeline value; manage milestones with photo uploads once accepted
+
+- Onboard via `/contractor/signup` (business info + expertise)
+- Browse open jobs on the Job Feed, submit priced bids with scope-of-work notes
+- Track bid status, win rate, and pipeline value in the Active Bids dashboard
+- Manage profile settings and license/insurance verification
 
 ## Tech stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite |
-| UI | shadcn/ui, Tailwind CSS, Radix UI |
-| Routing | React Router v6 |
-| State | TanStack Query |
-| Auth + DB | Supabase (Postgres + Auth + Edge Functions) |
-| AI analysis | Google Gemini Flash (via Cloud Run + Supabase edge functions) |
-| Payments | Stripe Connect (escrow + same-day payouts) |
-| Push notifications | Web Push API + VAPID (Cloud Run) |
-| Native mobile | Capacitor (Android live, iOS in progress) |
-| PWA | Manifest + service worker managed by Lovable |
+- **Frontend:** React 18, TypeScript, Vite
+- **UI:** shadcn/ui, Tailwind CSS, Radix UI
+- **Backend:** Supabase (Postgres + Auth + Edge Functions)
+- **AI analysis:** Cloud Run endpoint (KisX backend) — called directly from the browser for video, via edge function proxy for photos
+- **Routing:** React Router v6
+- **State:** TanStack Query
+- **PWA:** Configured in this repo with `vite-plugin-pwa` (`vite.config.ts`) and `public/push-sw.js`; deployed via Lovable
 
 ## Local development
 
@@ -72,7 +70,7 @@ npx cap open ios       # Open ios/App/App.xcworkspace in Xcode (Mac only)
 
 ## Project structure
 
-```
+```text
 src/
   pages/                   # Route-level components
   components/
@@ -96,6 +94,12 @@ supabase/
   migrations/              # Database schema migrations
   functions/               # Edge function source (zip-lookup, analyse-*)
 ```
+
+## Current architecture note
+
+- Cloud Run `jobs` APIs are the source of truth for bidding and status transitions.
+- The frontend still writes/reads some legacy `videos` rows for analysis history and compatibility paths.
+- Ongoing refactor target: remove remaining `videos` dependencies from contractor/job flows.
 
 ## Database tables
 
@@ -138,3 +142,4 @@ PWA manifest and service worker are injected by Lovable at build time — no loc
 
 **Android release:** build the Capacitor project in Android Studio → sign APK → upload to Play Store.
 Before release: remove `server.url` from `capacitor.config.ts`, update `appId` to KisX package name, and update `strings.xml`.
+PWA behavior is configured in `vite.config.ts` via `vite-plugin-pwa`, and web push notifications use `public/push-sw.js`. Lovable still handles deployment and hosting.

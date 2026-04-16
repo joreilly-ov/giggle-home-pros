@@ -1,11 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MapPin, Clock, AlertTriangle, Flame, Eye, Gavel, Send, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Clock,
+  AlertTriangle,
+  Flame,
+  Eye,
+  Gavel,
+  Send,
+  CheckCircle,
+  Trash2,
+  PoundSterling,
+  Circle,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Dialog,
@@ -14,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/lib/api";
+import { api, Bid } from "@/lib/api";
 import { JobQuestions } from "@/components/questions/JobQuestions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,6 +51,24 @@ const urgencyColor = (u: string | undefined) => {
   return "bg-primary/10 text-primary";
 };
 
+const BID_STATUS_CONFIG: Record<string, { label: string; classes: string; dot: string }> = {
+  pending: {
+    label: "Pending",
+    classes: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800",
+    dot: "bg-amber-400",
+  },
+  accepted: {
+    label: "Accepted",
+    classes: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
+    dot: "bg-green-500",
+  },
+  rejected: {
+    label: "Declined",
+    classes: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800",
+    dot: "bg-red-500",
+  },
+};
+
 export function JobFeed() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,7 +82,11 @@ export function JobFeed() {
   const [bidAmount, setBidAmount] = useState("");
   const [bidNote, setBidNote] = useState("");
   const [submittingBid, setSubmittingBid] = useState(false);
-  const [bidSubmitted, setBidSubmitted] = useState(false);
+
+  // Existing bid state for selected job
+  const [existingBid, setExistingBid] = useState<Bid | null>(null);
+  const [loadingBid, setLoadingBid] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -80,6 +115,22 @@ export function JobFeed() {
       });
   }, [user]);
 
+  // Load existing bid when a job is selected
+  const loadExistingBid = useCallback(async (jobId: string) => {
+    setLoadingBid(true);
+    setExistingBid(null);
+    try {
+      const bids = await api.bids.listForJob(jobId);
+      // Contractor only sees their own bid from this endpoint
+      const myBid = bids.find((b) => b.status !== "rejected");
+      setExistingBid(myBid ?? null);
+    } catch {
+      // Ignore — just show the form
+    } finally {
+      setLoadingBid(false);
+    }
+  }, []);
+
   const handleSubmitBid = async () => {
     if (!selectedJob || !bidAmount) return;
     const pence = Math.round(parseFloat(bidAmount) * 100);
@@ -87,10 +138,18 @@ export function JobFeed() {
       toast({ title: "Enter a valid amount", variant: "destructive" });
       return;
     }
+    if (bidNote.length < 10) {
+      toast({ title: "Note must be at least 10 characters", variant: "destructive" });
+      return;
+    }
+    if (bidNote.length > 2000) {
+      toast({ title: "Note must be under 2,000 characters", variant: "destructive" });
+      return;
+    }
     setSubmittingBid(true);
     try {
-      await api.bids.submit(selectedJob.id, pence, bidNote);
-      setBidSubmitted(true);
+      const newBid = await api.bids.submit(selectedJob.id, pence, bidNote);
+      setExistingBid(newBid);
       toast({ title: "Bid submitted!", description: "The homeowner will review your bid." });
     } catch (e) {
       toast({
@@ -103,11 +162,29 @@ export function JobFeed() {
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!selectedJob || !existingBid) return;
+    setWithdrawing(true);
+    try {
+      await api.bids.withdraw(selectedJob.id, existingBid.id);
+      setExistingBid(null);
+      toast({ title: "Bid withdrawn." });
+    } catch (e) {
+      toast({
+        title: "Failed to withdraw bid",
+        description: e instanceof Error ? e.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
   const openJob = (job: PostedJob) => {
     setSelectedJob(job);
     setBidAmount("");
     setBidNote("");
-    setBidSubmitted(false);
+    loadExistingBid(job.id);
   };
 
   if (loading) {
@@ -305,15 +382,70 @@ export function JobFeed() {
                 {/* Q&A section */}
                 <JobQuestions jobId={selectedJob.id} role="contractor" />
 
-                {/* Bid form */}
+                {/* Bid section */}
                 <div className="border-t border-border pt-4 mt-2">
-                  {bidSubmitted ? (
-                    <div className="flex flex-col items-center gap-2 py-4 text-center">
-                      <CheckCircle className="w-8 h-8 text-green-500" />
-                      <p className="text-sm font-semibold text-foreground">Bid Submitted!</p>
-                      <p className="text-xs text-muted-foreground">The homeowner will review your bid and respond.</p>
+                  {loadingBid ? (
+                    <div className="flex items-center justify-center py-4 text-muted-foreground text-sm gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Checking your bid…
+                    </div>
+                  ) : existingBid ? (
+                    /* Show existing bid */
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Gavel className="w-4 h-4 text-primary" />
+                        <h4 className="text-sm font-heading font-semibold text-foreground">Your Bid</h4>
+                      </div>
+                      <div className="bg-secondary/40 border border-border rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="flex items-center gap-1 text-base font-bold text-foreground">
+                            <PoundSterling className="w-3.5 h-3.5" />
+                            {(existingBid.amount_pence / 100).toFixed(2)}
+                          </span>
+                          {(() => {
+                            const cfg = BID_STATUS_CONFIG[existingBid.status] ?? BID_STATUS_CONFIG.pending;
+                            return (
+                              <Badge
+                                variant="outline"
+                                className={`text-xs font-semibold border flex items-center gap-1.5 ${cfg.classes}`}
+                              >
+                                <Circle className={`w-1.5 h-1.5 fill-current ${cfg.dot} rounded-full`} />
+                                {cfg.label}
+                              </Badge>
+                            );
+                          })()}
+                        </div>
+                        {existingBid.note && (
+                          <p className="text-xs text-muted-foreground leading-relaxed">{existingBid.note}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Submitted {new Date(existingBid.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                        </p>
+                      </div>
+                      {existingBid.status === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/5"
+                          disabled={withdrawing}
+                          onClick={handleWithdraw}
+                        >
+                          {withdrawing ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          Withdraw Bid
+                        </Button>
+                      )}
+                      {existingBid.status === "accepted" && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="font-medium">Your bid was accepted!</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
+                    /* Show bid form */
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Gavel className="w-4 h-4 text-primary" />
@@ -336,21 +468,25 @@ export function JobFeed() {
                       </div>
                       <div>
                         <Label htmlFor="bid-note" className="text-xs text-muted-foreground">
-                          Note to Homeowner (optional)
+                          Scope of Work (10–2,000 chars)
                         </Label>
                         <Textarea
                           id="bid-note"
                           placeholder="Describe your approach, timeline, experience with this type of work…"
                           value={bidNote}
                           onChange={(e) => setBidNote(e.target.value)}
-                          rows={3}
+                          rows={4}
                           className="mt-1 resize-none"
+                          maxLength={2000}
                         />
+                        <p className="text-xs text-muted-foreground mt-1 text-right">
+                          {bidNote.length}/2,000
+                        </p>
                       </div>
                       <Button
                         className="w-full gap-2"
                         onClick={handleSubmitBid}
-                        disabled={submittingBid || !bidAmount}
+                        disabled={submittingBid || !bidAmount || bidNote.length < 10}
                       >
                         {submittingBid ? (
                           <Loader2 className="w-4 h-4 animate-spin" />

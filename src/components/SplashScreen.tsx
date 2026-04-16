@@ -8,14 +8,26 @@ interface SplashScreenProps {
 const SplashScreen = ({ onDone }: SplashScreenProps) => {
   const [fading, setFading] = useState(false);
 
+  // Only show splash in standalone/PWA mode — skip in regular browser to improve Speed Index
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true);
+
   useEffect(() => {
+    if (!isStandalone) {
+      onDone();
+      return;
+    }
     const fadeTimer = setTimeout(() => setFading(true), 1800);
     const doneTimer = setTimeout(() => onDone(), 2300);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(doneTimer);
     };
-  }, [onDone]);
+  }, [onDone, isStandalone]);
+
+  if (!isStandalone) return null;
 
   return (
     <div
@@ -29,10 +41,10 @@ const SplashScreen = ({ onDone }: SplashScreenProps) => {
       <div className="flex flex-col items-center gap-6">
         {/* Wordmark */}
         <h1 className="text-5xl font-extrabold font-heading text-primary-foreground tracking-tight">
-          Kis<span className="text-primary">X</span>
+          Kis<span className="text-accent">X</span>
         </h1>
 
-        <p className="text-primary-foreground/60 text-sm tracking-wide uppercase">
+        <p className="text-primary-foreground/80 text-sm tracking-wide uppercase">
           Home Services Marketplace
         </p>
 

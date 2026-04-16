@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      bids: {
+        Row: {
+          amount_pence: number
+          contractor_id: string
+          created_at: string
+          id: string
+          job_id: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          amount_pence: number
+          contractor_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+          note?: string | null
+          status?: string
+        }
+        Update: {
+          amount_pence?: number
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractors: {
         Row: {
           business_name: string
@@ -50,6 +95,42 @@ export type Database = {
           postcode?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          activity: string
+          created_at: string
+          description: string
+          escrow_status: string
+          id: string
+          postcode: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string
+          description: string
+          escrow_status?: string
+          id?: string
+          postcode: string
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          description?: string
+          escrow_status?: string
+          id?: string
+          postcode?: string
+          status?: string
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -372,7 +453,41 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      seed_insert_contractor:
+        | {
+            Args: {
+              p_activities: string[]
+              p_business_name: string
+              p_id: string
+              p_phone: string
+              p_postcode: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_business_name: string
+              p_expertise: string[]
+              p_insurance_details?: string
+              p_license_number?: string
+              p_phone: string
+              p_postcode: string
+              p_user_id: string
+            }
+            Returns: string
+          }
+      seed_insert_review: {
+        Args: {
+          p_comment: string
+          p_contractor_id: string
+          p_job_id: string
+          p_rating_cleanliness: number
+          p_rating_communication: number
+          p_rating_quality: number
+          p_reviewer_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

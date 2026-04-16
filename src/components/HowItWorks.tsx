@@ -1,4 +1,5 @@
 import { Video, Bot, ShieldCheck, Banknote, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const steps = [
   {
@@ -15,6 +16,7 @@ const steps = [
     icon: ShieldCheck,
     title: "Funds Held in Escrow",
     description: "Your money is safely held until you approve the completed work. No surprises.",
+    link: "/same-day-payments",
   },
   {
     icon: CheckCircle,
@@ -25,6 +27,7 @@ const steps = [
     icon: Banknote,
     title: "Same-Day Pay",
     description: "Contractors get paid the same day you approve — fast, fair, and reliable.",
+    link: "/same-day-payments",
   },
 ];
 
@@ -48,6 +51,11 @@ const HowItWorks = () => {
               <div className="text-sm font-bold text-primary mb-1">Step {i + 1}</div>
               <h3 className="font-heading font-bold text-foreground mb-2">{step.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+              {step.link && (
+                <Link to={step.link} className="text-xs font-semibold text-primary hover:underline mt-2">
+                  Learn more →
+                </Link>
+              )}
             </div>
           ))}
         </div>

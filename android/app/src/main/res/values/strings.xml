@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Giggle Home Pros</string>
-    <string name="title_activity_main">Giggle Home Pros</string>
-    <string name="package_name">com.gigglehomepros.app</string>
-    <string name="custom_url_scheme">com.gigglehomepros.app</string>
+    <string name="app_name">KisX</string>
+    <string name="title_activity_main">KisX</string>
+    <string name="package_name">com.kisx.app</string>
+    <string name="custom_url_scheme">com.kisx.app</string>
 </resources>
