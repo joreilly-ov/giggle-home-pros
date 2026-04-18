@@ -59,6 +59,44 @@ export type Database = {
           },
         ]
       }
+      contractor_details: {
+        Row: {
+          ai_review_summary: Json | null
+          id: string
+          insurance_verified: boolean
+          profile_text: string | null
+          stripe_account_id: string | null
+          updated_at: string
+          years_experience: number | null
+        }
+        Insert: {
+          ai_review_summary?: Json | null
+          id: string
+          insurance_verified?: boolean
+          profile_text?: string | null
+          stripe_account_id?: string | null
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Update: {
+          ai_review_summary?: Json | null
+          id?: string
+          insurance_verified?: boolean
+          profile_text?: string | null
+          stripe_account_id?: string | null
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_details_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractors: {
         Row: {
           business_name: string
@@ -98,6 +136,88 @@ export type Database = {
         }
         Relationships: []
       }
+      job_milestones: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          job_id: string
+          order_index: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_id: string
+          order_index?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_id?: string
+          order_index?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_milestones_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          contractor_id: string
+          created_at: string
+          id: string
+          job_id: string
+          question: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          contractor_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+          question: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_questions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           activity: string
@@ -134,6 +254,51 @@ export type Database = {
         }
         Relationships: []
       }
+      milestone_photos: {
+        Row: {
+          created_at: string
+          id: string
+          image_source: string
+          job_id: string
+          milestone_id: string
+          note: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_source: string
+          job_id: string
+          milestone_id: string
+          note?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_source?: string
+          job_id?: string
+          milestone_id?: string
+          note?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_photos_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_photos_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "job_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           city: string | null
@@ -167,6 +332,36 @@ export type Database = {
           postcode?: string | null
           road_address?: string | null
           state?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
