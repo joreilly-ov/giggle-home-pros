@@ -271,14 +271,17 @@ const BrowseContractors = () => {
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader className="mb-6">
             <SheetTitle className="font-heading">
-              {reviewTarget?.businessName} — Reviews
+              {reviewTarget?.businessName}
             </SheetTitle>
           </SheetHeader>
           {reviewTarget && (
-            <ReviewMediator
-              contractorId={reviewTarget.contractorId}
-              mode="list"
-            />
+            <div className="space-y-6">
+              <PublicVerifiedDocs contractorId={reviewTarget.contractorId} />
+              <ReviewMediator
+                contractorId={reviewTarget.contractorId}
+                mode="list"
+              />
+            </div>
           )}
         </SheetContent>
       </Sheet>
