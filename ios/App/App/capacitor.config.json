@@ -1,0 +1,10 @@
+{
+	"appId": "com.gigglehomepros.app",
+	"appName": "Giggle Home Pros",
+	"webDir": "dist",
+	"server": {
+		"url": "http://192.168.0.152:5173",
+		"cleartext": true
+	},
+	"packageClassList": []
+}
