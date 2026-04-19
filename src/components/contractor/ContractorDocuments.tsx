@@ -257,14 +257,14 @@ export function ContractorDocuments() {
                       ) : d.status === "verified" ? (
                         <Badge
                           variant="outline"
-                          className="text-[10px] gap-1 border-green-600/40 text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950"
+                          className="text-[10px] gap-1 border-primary/40 text-primary bg-primary/10"
                         >
                           <CheckCircle2 className="w-3 h-3" /> Verified
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
-                          className="text-[10px] gap-1 border-amber-500/40 text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950"
+                          className="text-[10px] gap-1 border-accent/50 text-accent-foreground bg-accent/15"
                         >
                           <AlertTriangle className="w-3 h-3" /> Needs Review
                         </Badge>
