@@ -272,7 +272,7 @@ export function ContractorDocuments() {
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{d.file_name}</p>
                     {d.status === "needs_review" && !expired && (
-                      <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Manual review in progress — we'll email you when it's done.
                       </p>
                     )}
