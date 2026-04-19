@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { ReviewMediator } from "@/components/ReviewMediator";
 import { api, type ContractorDocument } from "@/lib/api";
+import { VerifiedDocsBadge } from "@/components/contractor/VerifiedDocsBadge";
 import {
   Building2,
   MapPin,

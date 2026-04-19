@@ -35,7 +35,7 @@ export function VerifiedDocsBadge({ contractorId }: VerifiedDocsBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800 shrink-0"
+      className="text-[10px] font-semibold bg-primary/10 text-primary border-primary/20 shrink-0"
     >
       <ShieldCheck className="w-3 h-3 mr-1" />
       {count} verified credential{count !== 1 ? "s" : ""}
