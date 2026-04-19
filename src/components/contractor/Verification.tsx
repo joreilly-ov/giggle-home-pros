@@ -139,6 +139,8 @@ export function Verification() {
           </Button>
         </CardContent>
       </Card>
+
+      <ContractorDocuments />
     </div>
   );
 }
