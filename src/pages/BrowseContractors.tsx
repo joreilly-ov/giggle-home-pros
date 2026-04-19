@@ -288,6 +288,7 @@ const BrowseContractors = () => {
                             Verified
                           </Badge>
                         )}
+                        <VerifiedDocsBadge contractorId={c.id} />
                       </div>
 
                       {/* Rating */}
