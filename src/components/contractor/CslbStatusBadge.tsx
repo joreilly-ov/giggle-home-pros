@@ -31,34 +31,22 @@ export function CslbStatusBadge({ contractorId, variant = "compact" }: CslbStatu
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any)
-      .from("contractor_details")
-      .select("cslb_licence_number, licence_status, licence_verified_at")
-      .eq("id", contractorId)
-      .maybeSingle()
-      .then(({ data }: { data: CslbDetails | null }) => {
-        if (!cancelled) setDetails(data);
-      })
-      .catch(() => {
-        if (!cancelled) setDetails(null);
-      })
+    (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then?.(() => {
-        if (!cancelled) setLoading(false);
-      });
-    // Fallback for environments without .then chain on supabase builder
+      const { data } = await (supabase as any)
+        .from("contractor_details")
+        .select("cslb_licence_number, licence_status, licence_verified_at")
+        .eq("id", contractorId)
+        .maybeSingle();
+      if (!cancelled) {
+        setDetails(data ?? null);
+        setLoading(false);
+      }
+    })();
     return () => {
       cancelled = true;
     };
   }, [contractorId]);
-
-  // Use a separate effect to reliably clear loading once details settle
-  useEffect(() => {
-    if (details !== null || !loading) {
-      setLoading(false);
-    }
-  }, [details, loading]);
 
   if (loading || !details || !details.cslb_licence_number) return null;
 
