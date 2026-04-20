@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
         name: "KisX - Home Services Marketplace",
@@ -48,6 +51,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
