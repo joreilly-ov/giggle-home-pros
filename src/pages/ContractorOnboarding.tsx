@@ -123,6 +123,48 @@ const ContractorOnboarding = () => {
     setStep(2);
   };
 
+  const verifyLicence = async () => {
+    setLicenceError(null);
+    setLicenceData(null);
+    const trimmed = licenceNumber.trim();
+    if (!trimmed) { setLicenceError("Please enter a licence number"); return; }
+    if (!/^\d+$/.test(trimmed)) { setLicenceError("CSLB licence numbers are numeric (e.g. 1000002)"); return; }
+
+    setLicenceLoading(true);
+    try {
+      const { data, error } = await supabase.rpc("lookup_cslb_licence", { p_licence_number: trimmed });
+      if (error) {
+        setLicenceError(error.message);
+      } else if (!data) {
+        setLicenceError(`No CSLB licence found for ${trimmed}`);
+      } else {
+        const d = data as any;
+        setLicenceData({
+          licence_number: d.licence_number,
+          business_name: d.business_name,
+          primary_status: d.primary_status,
+          is_active: d.is_active,
+          expiration_date: d.expiration_date,
+          classifications: d.classifications,
+        });
+        // Auto-fill business name if empty
+        if (!businessName.trim() && d.business_name) {
+          setBusinessName(d.business_name);
+        }
+        toast({
+          title: d.is_active ? "Licence verified ✓" : "Licence found",
+          description: d.is_active
+            ? `${d.business_name} — ${d.primary_status}`
+            : `Status: ${d.primary_status}. You can still continue.`,
+        });
+      }
+    } catch (e) {
+      setLicenceError(e instanceof Error ? e.message : "Lookup failed");
+    } finally {
+      setLicenceLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast({ title: "You must be signed in to create a contractor profile.", variant: "destructive" });
@@ -135,21 +177,37 @@ const ContractorOnboarding = () => {
 
     setSaving(true);
 
-    const { error } = await supabase.from("contractors" as any).insert({
-      user_id: user.id,
-      business_name: businessName.trim(),
-      postcode: postcode.trim(),
-      phone: phone.trim(),
-      expertise,
-    } as any);
-
-    setSaving(false);
+    const { data: inserted, error } = await supabase
+      .from("contractors" as any)
+      .insert({
+        user_id: user.id,
+        business_name: businessName.trim(),
+        postcode: postcode.trim(),
+        phone: phone.trim(),
+        expertise,
+        license_number: licenceData?.licence_number || (licenceNumber.trim() || null),
+      } as any)
+      .select("id")
+      .single();
 
     if (error) {
+      setSaving(false);
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
 
+    // Save CSLB verification details if we have them
+    if (licenceData && inserted) {
+      const contractorId = (inserted as any).id;
+      await supabase.from("contractor_details" as any).upsert({
+        id: contractorId,
+        cslb_licence_number: licenceData.licence_number,
+        licence_status: licenceData.primary_status,
+        licence_verified_at: new Date().toISOString(),
+      } as any, { onConflict: "id" });
+    }
+
+    setSaving(false);
     toast({ title: "Welcome aboard! 🎉", description: "Your contractor profile has been created." });
     navigate(user ? "/dashboard" : "/");
   };
