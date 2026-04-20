@@ -199,13 +199,13 @@ export default function CslbCheck() {
     setBulkLoading(false);
   };
 
+  useEffect(() => {
+    document.title = "CSLB Licence Check | KisX";
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>CSLB Licence Check | KisX</title>
-        <meta name="description" content="Look up California State License Board (CSLB) contractor licences, workers' comp, and bond status." />
-      </Helmet>
-      <Navbar variant="solid" />
+      <Navbar />
       <main className="min-h-screen bg-background pt-24 pb-16">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="mb-8">
