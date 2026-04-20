@@ -62,8 +62,11 @@ export type Database = {
       contractor_details: {
         Row: {
           ai_review_summary: Json | null
+          cslb_licence_number: string | null
           id: string
           insurance_verified: boolean
+          licence_status: string | null
+          licence_verified_at: string | null
           profile_text: string | null
           stripe_account_id: string | null
           updated_at: string
@@ -71,8 +74,11 @@ export type Database = {
         }
         Insert: {
           ai_review_summary?: Json | null
+          cslb_licence_number?: string | null
           id: string
           insurance_verified?: boolean
+          licence_status?: string | null
+          licence_verified_at?: string | null
           profile_text?: string | null
           stripe_account_id?: string | null
           updated_at?: string
@@ -80,14 +86,24 @@ export type Database = {
         }
         Update: {
           ai_review_summary?: Json | null
+          cslb_licence_number?: string | null
           id?: string
           insurance_verified?: boolean
+          licence_status?: string | null
+          licence_verified_at?: string | null
           profile_text?: string | null
           stripe_account_id?: string | null
           updated_at?: string
           years_experience?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contractor_details_cslb_licence_number_fkey"
+            columns: ["cslb_licence_number"]
+            isOneToOne: false
+            referencedRelation: "cslb_licences"
+            referencedColumns: ["licence_number"]
+          },
           {
             foreignKeyName: "contractor_details_id_fkey"
             columns: ["id"]
@@ -135,6 +151,242 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      cslb_licences: {
+        Row: {
+          asbestos_reg: string | null
+          business_name: string
+          business_name_2: string | null
+          business_phone: string | null
+          business_type: string | null
+          cb_amount: number | null
+          cb_cancellation_date: string | null
+          cb_effective_date: string | null
+          cb_number: string | null
+          cb_surety_company: string | null
+          city: string | null
+          classifications: string | null
+          country: string | null
+          county: string | null
+          db_amount: number | null
+          db_bond_reason: string | null
+          db_cancellation_date: string | null
+          db_case_no: string | null
+          db_date_required: string | null
+          db_discp_case_region: string | null
+          db_effective_date: string | null
+          db_number: string | null
+          db_surety_company: string | null
+          expiration_date: string | null
+          full_business_name: string | null
+          imported_at: string
+          inactivation_date: string | null
+          issue_date: string | null
+          last_update: string | null
+          licence_number: string
+          mailing_address: string | null
+          name_type: string | null
+          pending_class_removal: string | null
+          pending_suspension: string | null
+          primary_status: string
+          reactivation_date: string | null
+          reissue_date: string | null
+          secondary_status: string | null
+          state: string | null
+          wb_amount: number | null
+          wb_cancellation_date: string | null
+          wb_effective_date: string | null
+          wb_number: string | null
+          wb_surety_company: string | null
+          wc_cancellation_date: string | null
+          wc_coverage_type: string | null
+          wc_effective_date: string | null
+          wc_expiration_date: string | null
+          wc_insurance_company: string | null
+          wc_policy_number: string | null
+          wc_suspend_date: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          asbestos_reg?: string | null
+          business_name: string
+          business_name_2?: string | null
+          business_phone?: string | null
+          business_type?: string | null
+          cb_amount?: number | null
+          cb_cancellation_date?: string | null
+          cb_effective_date?: string | null
+          cb_number?: string | null
+          cb_surety_company?: string | null
+          city?: string | null
+          classifications?: string | null
+          country?: string | null
+          county?: string | null
+          db_amount?: number | null
+          db_bond_reason?: string | null
+          db_cancellation_date?: string | null
+          db_case_no?: string | null
+          db_date_required?: string | null
+          db_discp_case_region?: string | null
+          db_effective_date?: string | null
+          db_number?: string | null
+          db_surety_company?: string | null
+          expiration_date?: string | null
+          full_business_name?: string | null
+          imported_at?: string
+          inactivation_date?: string | null
+          issue_date?: string | null
+          last_update?: string | null
+          licence_number: string
+          mailing_address?: string | null
+          name_type?: string | null
+          pending_class_removal?: string | null
+          pending_suspension?: string | null
+          primary_status: string
+          reactivation_date?: string | null
+          reissue_date?: string | null
+          secondary_status?: string | null
+          state?: string | null
+          wb_amount?: number | null
+          wb_cancellation_date?: string | null
+          wb_effective_date?: string | null
+          wb_number?: string | null
+          wb_surety_company?: string | null
+          wc_cancellation_date?: string | null
+          wc_coverage_type?: string | null
+          wc_effective_date?: string | null
+          wc_expiration_date?: string | null
+          wc_insurance_company?: string | null
+          wc_policy_number?: string | null
+          wc_suspend_date?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          asbestos_reg?: string | null
+          business_name?: string
+          business_name_2?: string | null
+          business_phone?: string | null
+          business_type?: string | null
+          cb_amount?: number | null
+          cb_cancellation_date?: string | null
+          cb_effective_date?: string | null
+          cb_number?: string | null
+          cb_surety_company?: string | null
+          city?: string | null
+          classifications?: string | null
+          country?: string | null
+          county?: string | null
+          db_amount?: number | null
+          db_bond_reason?: string | null
+          db_cancellation_date?: string | null
+          db_case_no?: string | null
+          db_date_required?: string | null
+          db_discp_case_region?: string | null
+          db_effective_date?: string | null
+          db_number?: string | null
+          db_surety_company?: string | null
+          expiration_date?: string | null
+          full_business_name?: string | null
+          imported_at?: string
+          inactivation_date?: string | null
+          issue_date?: string | null
+          last_update?: string | null
+          licence_number?: string
+          mailing_address?: string | null
+          name_type?: string | null
+          pending_class_removal?: string | null
+          pending_suspension?: string | null
+          primary_status?: string
+          reactivation_date?: string | null
+          reissue_date?: string | null
+          secondary_status?: string | null
+          state?: string | null
+          wb_amount?: number | null
+          wb_cancellation_date?: string | null
+          wb_effective_date?: string | null
+          wb_number?: string | null
+          wb_surety_company?: string | null
+          wc_cancellation_date?: string | null
+          wc_coverage_type?: string | null
+          wc_effective_date?: string | null
+          wc_expiration_date?: string | null
+          wc_insurance_company?: string | null
+          wc_policy_number?: string | null
+          wc_suspend_date?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      cslb_personnel: {
+        Row: {
+          association_dates: string[] | null
+          bond_amount: number | null
+          bond_cancellation_date: string | null
+          bond_effective_date: string | null
+          bond_number: string | null
+          class_code_statuses: string[] | null
+          class_codes: string[] | null
+          disassociation_dates: string[] | null
+          imported_at: string
+          last_updated: string | null
+          licence_number: string
+          name: string
+          name_type: string | null
+          record_type: string | null
+          seq_no: string
+          surety_company: string | null
+          surety_type: string | null
+          titles: string[] | null
+        }
+        Insert: {
+          association_dates?: string[] | null
+          bond_amount?: number | null
+          bond_cancellation_date?: string | null
+          bond_effective_date?: string | null
+          bond_number?: string | null
+          class_code_statuses?: string[] | null
+          class_codes?: string[] | null
+          disassociation_dates?: string[] | null
+          imported_at?: string
+          last_updated?: string | null
+          licence_number: string
+          name: string
+          name_type?: string | null
+          record_type?: string | null
+          seq_no: string
+          surety_company?: string | null
+          surety_type?: string | null
+          titles?: string[] | null
+        }
+        Update: {
+          association_dates?: string[] | null
+          bond_amount?: number | null
+          bond_cancellation_date?: string | null
+          bond_effective_date?: string | null
+          bond_number?: string | null
+          class_code_statuses?: string[] | null
+          class_codes?: string[] | null
+          disassociation_dates?: string[] | null
+          imported_at?: string
+          last_updated?: string | null
+          licence_number?: string
+          name?: string
+          name_type?: string | null
+          record_type?: string | null
+          seq_no?: string
+          surety_company?: string | null
+          surety_type?: string | null
+          titles?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cslb_personnel_licence_number_fkey"
+            columns: ["licence_number"]
+            isOneToOne: false
+            referencedRelation: "cslb_licences"
+            referencedColumns: ["licence_number"]
+          },
+        ]
       }
       job_milestones: {
         Row: {
@@ -648,6 +900,7 @@ export type Database = {
       }
     }
     Functions: {
+      lookup_cslb_licence: { Args: { p_licence_number: string }; Returns: Json }
       seed_insert_contractor:
         | {
             Args: {
