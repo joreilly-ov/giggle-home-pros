@@ -30,6 +30,7 @@ const BrowseContractors = lazy(() => import("./pages/BrowseContractors.tsx"));
 const Install = lazy(() => import("./pages/Install.tsx"));
 const ConnectReturn = lazy(() => import("./pages/ConnectReturn.tsx"));
 const ConnectRefresh = lazy(() => import("./pages/ConnectRefresh.tsx"));
+const CslbCheck = lazy(() => import("./pages/CslbCheck.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => {
               <Route path="/install" element={<Install />} />
               <Route path="/contractor/connect/return" element={<ConnectReturn />} />
               <Route path="/contractor/connect/refresh" element={<ConnectRefresh />} />
+              <Route path="/cslb-check" element={<CslbCheck />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
