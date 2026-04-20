@@ -22,7 +22,11 @@ import {
   HardHat,
   MapPin,
   Loader2,
+  ShieldCheck,
+  ShieldAlert,
+  Search,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const EXPERTISE_OPTIONS = [
   { label: "Plumbing", icon: Droplets, description: "Pipes, fixtures & water systems" },
@@ -54,6 +58,19 @@ const ContractorOnboarding = () => {
   const [zipLocation, setZipLocation] = useState("");
   const [zipLoading, setZipLoading] = useState(false);
   const [phone, setPhone] = useState("");
+
+  // CSLB licence
+  const [licenceNumber, setLicenceNumber] = useState("");
+  const [licenceLoading, setLicenceLoading] = useState(false);
+  const [licenceError, setLicenceError] = useState<string | null>(null);
+  const [licenceData, setLicenceData] = useState<{
+    licence_number: string;
+    business_name: string;
+    primary_status: string;
+    is_active: boolean;
+    expiration_date: string | null;
+    classifications: string | null;
+  } | null>(null);
 
   const [expertise, setExpertise] = useState<string[]>([]);
 
