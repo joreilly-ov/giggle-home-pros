@@ -45,9 +45,11 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 ```sh
 git clone <repo-url>
 cd KisX
-npm install        # or: bun install
+npm install
 npm run dev        # http://localhost:8080
 ```
+
+This repo standardizes on npm; keep `package-lock.json` as the single lockfile and avoid committing Bun lockfiles.
 
 Requires Node.js 18+. Connects to a hosted Supabase instance — no local Supabase setup needed for frontend work.
 
