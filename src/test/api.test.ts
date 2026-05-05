@@ -196,4 +196,80 @@ describe("api — HTTP methods", () => {
       note: "my note",
     });
   });
+
+  it("uses POST for notifications.subscribeWeb with web_push payload", async () => {
+    mockSession("tok");
+    mockResponse({ ok: true });
+
+    await api.notifications.subscribeWeb(
+      "https://push.example/sub/123",
+      "p256dh-key",
+      "auth-key",
+    );
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/notifications/subscribe`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      endpoint: "https://push.example/sub/123",
+      p256dh: "p256dh-key",
+      auth_key: "auth-key",
+      client_type: "web_push",
+    });
+  });
+
+  it("uses DELETE for notifications.unsubscribeWeb with web_push payload", async () => {
+    mockSession("tok");
+    mockResponse({ ok: true });
+
+    await api.notifications.unsubscribeWeb(
+      "https://push.example/sub/123",
+      "p256dh-key",
+      "auth-key",
+    );
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/notifications/subscribe`);
+    expect(init.method).toBe("DELETE");
+    expect(JSON.parse(init.body as string)).toEqual({
+      endpoint: "https://push.example/sub/123",
+      p256dh: "p256dh-key",
+      auth_key: "auth-key",
+      client_type: "web_push",
+    });
+  });
+
+  it("uses POST for notifications.subscribeNative with native_push payload", async () => {
+    mockSession("tok");
+    mockResponse({ ok: true });
+
+    await api.notifications.subscribeNative("android", "native-token-abc");
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/notifications/subscribe`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      endpoint: "native:android:native-token-abc",
+      p256dh: "",
+      auth_key: "",
+      client_type: "native_push",
+    });
+  });
+
+  it("uses DELETE for notifications.unsubscribeNative with native_push payload", async () => {
+    mockSession("tok");
+    mockResponse({ ok: true });
+
+    await api.notifications.unsubscribeNative("ios", "native-token-xyz");
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${BASE}/notifications/subscribe`);
+    expect(init.method).toBe("DELETE");
+    expect(JSON.parse(init.body as string)).toEqual({
+      endpoint: "native:ios:native-token-xyz",
+      p256dh: "",
+      auth_key: "",
+      client_type: "native_push",
+    });
+  });
 });
