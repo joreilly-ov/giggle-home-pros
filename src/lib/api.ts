@@ -157,6 +157,42 @@ export interface Bid {
   job?: Job;
 }
 
+export type PushSubscriptionInput =
+  | {
+      channel: "web";
+      endpoint: string;
+      p256dh: string;
+      auth_key: string;
+    }
+  | {
+      channel: "native";
+      platform: "ios" | "android";
+      token: string;
+    };
+
+function toBackendPushPayload(input: PushSubscriptionInput): {
+  endpoint: string;
+  p256dh: string;
+  auth_key: string;
+  client_type: "web_push" | "native_push";
+} {
+  if (input.channel === "native") {
+    return {
+      endpoint: `native:${input.platform}:${input.token}`,
+      p256dh: "",
+      auth_key: "",
+      client_type: "native_push",
+    };
+  }
+
+  return {
+    endpoint: input.endpoint,
+    p256dh: input.p256dh,
+    auth_key: input.auth_key,
+    client_type: "web_push",
+  };
+}
+
 // ─── API client ───────────────────────────────────────────────────────────────
 
 export const api = {
@@ -290,16 +326,64 @@ export const api = {
     vapidKey: () =>
       request<{ vapid_public_key: string }>("/notifications/vapid-public-key"),
 
+    subscribeInput: (input: PushSubscriptionInput) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify(toBackendPushPayload(input)),
+      }),
+
+    unsubscribeInput: (input: PushSubscriptionInput) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "DELETE",
+        body: JSON.stringify(toBackendPushPayload(input)),
+      }),
+
+    subscribeWeb: (endpoint: string, p256dh: string, auth_key: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "web", endpoint, p256dh, auth_key })
+        ),
+      }),
+
+    unsubscribeWeb: (endpoint: string, p256dh: string, auth_key: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "DELETE",
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "web", endpoint, p256dh, auth_key })
+        ),
+      }),
+
+    subscribeNative: (platform: "ios" | "android", token: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "native", platform, token })
+        ),
+      }),
+
+    unsubscribeNative: (platform: "ios" | "android", token: string) =>
+      request<{ ok: boolean }>("/notifications/subscribe", {
+        method: "DELETE",
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "native", platform, token })
+        ),
+      }),
+
     subscribe: (endpoint: string, p256dh: string, auth_key: string) =>
       request<{ ok: boolean }>("/notifications/subscribe", {
         method: "POST",
-        body: JSON.stringify({ endpoint, p256dh, auth_key }),
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "web", endpoint, p256dh, auth_key })
+        ),
       }),
 
     unsubscribe: (endpoint: string, p256dh: string, auth_key: string) =>
       request<{ ok: boolean }>("/notifications/subscribe", {
         method: "DELETE",
-        body: JSON.stringify({ endpoint, p256dh, auth_key }),
+        body: JSON.stringify(
+          toBackendPushPayload({ channel: "web", endpoint, p256dh, auth_key })
+        ),
       }),
   },
 

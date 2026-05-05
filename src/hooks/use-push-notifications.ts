@@ -129,7 +129,7 @@ export function usePushNotifications() {
           await PushNotifications.register();
         });
 
-        await api.notifications.subscribe(endpoint, "", "");
+        await api.notifications.subscribeNative(Capacitor.getPlatform() as "ios" | "android", endpoint.split(":").slice(2).join(":"));
         localStorage.setItem(LS_KEY_NATIVE_ENDPOINT, endpoint);
         localStorage.setItem(LS_KEY, "true");
         setEnabled(true);
@@ -160,7 +160,7 @@ export function usePushNotifications() {
       // 4. Send to backend
       const p256dh = arrayBufferToBase64(subscription.getKey("p256dh")!);
       const auth_key = arrayBufferToBase64(subscription.getKey("auth")!);
-      await api.notifications.subscribe(subscription.endpoint, p256dh, auth_key);
+      await api.notifications.subscribeWeb(subscription.endpoint, p256dh, auth_key);
 
       localStorage.setItem(LS_KEY, "true");
       setEnabled(true);
@@ -180,7 +180,10 @@ export function usePushNotifications() {
       if (isNative) {
         const endpoint = localStorage.getItem(LS_KEY_NATIVE_ENDPOINT);
         if (endpoint) {
-          await api.notifications.unsubscribe(endpoint, "", "");
+          const parts = endpoint.split(":");
+          const platform = parts[1] as "ios" | "android";
+          const token = parts.slice(2).join(":");
+          await api.notifications.unsubscribeNative(platform, token);
         }
 
         try {
@@ -202,7 +205,7 @@ export function usePushNotifications() {
         if (subscription) {
           const p256dh = arrayBufferToBase64(subscription.getKey("p256dh")!);
           const auth_key = arrayBufferToBase64(subscription.getKey("auth")!);
-          await api.notifications.unsubscribe(subscription.endpoint, p256dh, auth_key);
+          await api.notifications.unsubscribeWeb(subscription.endpoint, p256dh, auth_key);
           await subscription.unsubscribe();
         }
       }
