@@ -61,6 +61,7 @@ Always check contractor first (see `Auth.tsx` redirect logic).
 | `/about` | About | About page |
 | `/contact` | Contact | Contact page |
 | `/privacy` | Privacy | Privacy policy |
+| `/cslb-check` | CslbCheck | CSLB (Contractors State License Board) licence lookup |
 | `*` | NotFound | 404 catch-all |
 
 ## Key patterns
@@ -179,7 +180,8 @@ All edge functions live in `supabase/functions/` (source of truth: https://githu
 ```sh
 npm install        # or: bun install
 npm run dev        # http://localhost:8080
-npm run test       # Vitest (33 tests across api, ReviewMediator, auth routing)
+npm run test       # Vitest (41 tests across 4 files)
+npm run typecheck:strict:lib  # Strict TypeScript lib check
 npm run lint       # ESLint
 npm run build      # Production build → dist/
 ```
@@ -188,7 +190,7 @@ npm run build      # Production build → dist/
 ```sh
 npx cap sync android   # Copy dist/ into the Android project
 npx cap open android   # Open in Android Studio
-npx cap sync ios       # (iOS not yet set up)
+npx cap sync ios       # Copy dist/ into the iOS project
 npx cap open ios       # Opens ios/App/App.xcworkspace in Xcode
 ```
 
@@ -270,5 +272,5 @@ Admins read it directly from `reviews` via service role.
 - `MyProjects.tsx` uses `api.jobs.get(id)` to re-fetch a single job after status transitions — the job must exist in the Cloud Run jobs table, not just in `videos`
 - **Capacitor config** (`capacitor.config.ts`) still has `appId: 'com.gigglehomepros.app'` and `appName: 'Giggle Home Pros'` — must be updated to KisX before Play Store / App Store submission
 - **Capacitor dev server** — the `server.url` block points to a local WiFi address for live-reload development; remove it entirely before building a release APK or IPA
-- **iOS Capacitor** not yet set up — requires a Mac with Xcode; run `npm install @capacitor/ios && npx cap add ios` to initialise
+- **iOS Capacitor** is set up (`@capacitor/ios` installed, `ios/` directory present). Building requires a Mac with Xcode; run `npx cap sync ios` then `npx cap open ios`
 - **Push notifications on iOS** only work when the app is installed as a PWA from Safari, not from within the browser tab

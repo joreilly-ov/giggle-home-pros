@@ -13,7 +13,7 @@ A marketplace connecting homeowners with trusted contractors for home repair and
 - Escrow-based payments powered by Stripe Connect — funds held until homeowner approves, contractor paid same day
 - Post-job tradesman rating system (Quality · Communication · Cleanliness) gated on escrow release, with admin-only private feedback
 - Push notifications via Web Push API — contractors alerted to new jobs, homeowners alerted to incoming bids
-- **Installable as a native app** — Android via Capacitor (Play Store ready), iOS Capacitor in progress; also installable as a PWA from any browser
+- **Installable as a native app** — Android via Capacitor (Play Store ready), iOS Capacitor set up (`@capacitor/ios` installed, `ios/` directory present — building requires a Mac with Xcode); also installable as a PWA from any browser
 
 ## User roles
 
@@ -60,13 +60,17 @@ npm run dev        # Start dev server (http://localhost:8080)
 npm run build      # Production build → dist/
 npm run test       # Vitest unit tests
 npm run lint       # ESLint
+npm run typecheck:strict:lib  # Strict TypeScript lib check
 ```
 
 **Capacitor (native app):**
 ```sh
 npm run build
+npm run android:dev    # Start dev server accessible to Android (--host)
+npm run android:run    # Run app on connected Android device/emulator
 npx cap sync android   # Sync dist/ into Android project
 npx cap open android   # Open in Android Studio
+npx cap sync ios       # Sync dist/ into iOS project (Mac only)
 npx cap open ios       # Open ios/App/App.xcworkspace in Xcode (Mac only)
 ```
 
@@ -115,13 +119,14 @@ supabase/
 
 ## Testing
 
-33 tests across 3 files. Run with `npm run test`.
+41 tests across 4 files. Run with `npm run test`.
 
 | Suite | Coverage |
-|-------|---------|
+|-------|------|
 | `api.test.ts` | Auth headers, URL construction, error handling, HTTP methods, request body serialisation |
 | `ReviewMediator.test.tsx` | Escrow gate (all 5 locked states + 2 unlock values), validation, field presence, live score |
 | `auth-routing.test.tsx` | Post-login redirects, `?next=` param, open-redirect guard |
+| `example.test.ts` | Framework smoke test (placeholder) |
 
 ## Review system
 
